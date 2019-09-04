@@ -1,0 +1,15 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: tprk77/ttfrmci
+    steps:
+      - checkout
+      - run:
+          name: Build tests and utilities
+          command: |
+            make
+      - run:
+          name: Run the tests
+          command: |
+            make test
