@@ -33,6 +33,11 @@ test('tfrm_tree_test', tfrm_tree_test)
 tfrm_bench = executable('tfrm_bench', 'tests/tfrm_bench.cpp',
   dependencies : [ttfrm_dep])
 
+# Spirograph-like demo
+sdl2_dep = dependency('sdl2', fallback : ['sdl2', 'sdl2_dep'])
+spirograph_demo = executable('spirograph_demo', 'tests/spirograph_demo.cpp',
+  dependencies : [ttfrm_dep, sdl2_dep])
+
 ###########
 # Install #
 ###########

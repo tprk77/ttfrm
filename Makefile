@@ -12,6 +12,10 @@ bench: | build
 	cd build && ninja
 	./build/tfrm_bench
 
+demo: | build
+	cd build && ninja
+	./build/spirograph_demo
+
 install: | build
 	cd build && ninja install
 
