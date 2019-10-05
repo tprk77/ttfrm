@@ -8,7 +8,7 @@ jobs:
       - run:
           name: Build tests and utilities
           command: |
-            make
+            make BUILD_GRAPHICS=false
       - run:
           name: Run the tests
           command: |
