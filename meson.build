@@ -22,16 +22,22 @@ ttfrm_dep = declare_dependency(
 
 # Tests
 gtest_dep = dependency('gtest', main : false, fallback : ['gtest', 'gtest_dep'])
-tfrm_test = executable('tfrm_test', 'tests/tfrm_test.cpp',
-  dependencies : [ttfrm_dep, gtest_dep])
+tfrm_test = executable(
+  'tfrm_test', 'tests/tfrm_test.cpp', dependencies : [ttfrm_dep, gtest_dep])
 test('tfrm_test', tfrm_test)
-tfrm_tree_test = executable('tfrm_tree_test', 'tests/tfrm_tree_test.cpp',
-  dependencies : [ttfrm_dep, gtest_dep])
+tfrm_tree_test = executable(
+  'tfrm_tree_test', 'tests/tfrm_tree_test.cpp', dependencies : [ttfrm_dep, gtest_dep])
 test('tfrm_tree_test', tfrm_tree_test)
 
 # Benchmark utility
-tfrm_bench = executable('tfrm_bench', 'tests/tfrm_bench.cpp',
-  dependencies : [ttfrm_dep])
+tfrm_bench = executable('tfrm_bench', 'tests/tfrm_bench.cpp', dependencies : [ttfrm_dep])
+
+# Spirograph-like demo
+if get_option('graphics')
+  sdl2_dep = dependency('sdl2', fallback : ['sdl2', 'sdl2_dep'])
+  spirograph_demo = executable(
+    'spirograph_demo', 'tests/spirograph_demo.cpp', dependencies : [ttfrm_dep, sdl2_dep])
+endif
 
 ###########
 # Install #

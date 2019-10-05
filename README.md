@@ -185,6 +185,20 @@ a transform to another transform (such as a pose) is faster. So if your
 workload involves chaining a bunch of transforms, or transforming a bunch of
 poses, quaternions will give you better performance.
 
+## Demo ##
+
+In the `tests` directory there is a simple 2D Spirograph-like demo. It works by
+composing several parameterized, circular transforms. You can run it using the
+following command:
+
+```text
+$ make demo
+```
+
+<p align="center">
+<img alt="Spirograph Demo" src="screenshots/spirograph.png"/>
+</p>
+
 <!-- Links -->
 
 [build_circleci]: https://circleci.com/gh/tprk77/ttfrm
