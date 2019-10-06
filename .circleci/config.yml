@@ -26,7 +26,9 @@ jobs:
       - run:
           name: Generate and upload coverage
           command: |
-            cpp-coveralls -r . -b build_cov -i ttfrm
+            echo -e "service_name: circle-ci\n" > .coveralls.yml \
+            && TRAVIS_JOB_ID="#${CIRCLE_BUILD_NUM}" cpp-coveralls -r . -b build_cov -i ttfrm
+          # NOTE Here we need to trick cpp-coveralls into doing the right thing
 
 workflows:
   version: 2
