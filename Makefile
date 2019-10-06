@@ -22,13 +22,16 @@ demo: | build
 install: | build
 	cd build && ninja install
 
-# Used to configure the build dir
 build:
 	meson $(MESON_OPTIONS) build
 
-# Used to reconfigure the build dir
-reconfig:
-	meson $(MESON_OPTIONS) build --reconfigure
+coverage: | build_cov
+	cd build_cov && ninja tfrm_test tfrm_tree_test
+	./build_cov/tfrm_test
+	./build_cov/tfrm_tree_test
+
+build_cov:
+	CC=gcc CXX=g++ CXXFLAGS='--coverage' meson -Dgraphics=false build_cov
 
 clean:
-	-rm -rf build
+	-rm -rf build build_cov

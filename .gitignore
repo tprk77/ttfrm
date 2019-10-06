@@ -1,6 +1,7 @@
 # .gitignore
 
 /build/
+/build_cov/
 /subprojects/SDL2-2.0.3/
 /subprojects/eigen-eigen-323c052e1731/
 /subprojects/fmt-5.3.0/
