@@ -31,7 +31,7 @@ coverage: | build_cov
 	./build_cov/tfrm_tree_test
 
 build_cov:
-	CC=gcc CXX=g++ CXXFLAGS='--coverage' meson -Dgraphics=false build_cov
+	CC=gcc CXX=g++ CXXFLAGS='--coverage -O0' meson -Dgraphics=false build_cov
 
 clean:
 	-rm -rf build build_cov
