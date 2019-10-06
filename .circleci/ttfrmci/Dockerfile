@@ -5,7 +5,7 @@ RUN apt-get update -qq \
     && apt-get install --no-install-recommends -qq -y \
         clang \
         cmake \
-        gcc \
+        g++ \
         git \
         ninja-build \
         pkg-config \
@@ -18,6 +18,9 @@ RUN apt-get update -qq \
 
 # Install Meson
 RUN pip3 install meson>=0.51
+
+# Install code coverage tools
+RUN pip3 install cpp-coveralls
 
 # Install dependencies
 RUN apt-get install --no-install-recommends -qq -y \

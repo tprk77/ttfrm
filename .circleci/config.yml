@@ -1,4 +1,5 @@
 version: 2
+
 jobs:
   build:
     docker:
@@ -13,3 +14,25 @@ jobs:
           name: Run the tests
           command: |
             make test
+  coverage:
+    docker:
+      - image: tprk77/ttfrmci
+    steps:
+      - checkout
+      - run:
+          name: Build and run tests for coverage
+          command: |
+            make coverage
+      - run:
+          name: Generate and upload coverage
+          command: |
+            cpp-coveralls -r . -b build_cov -i ttfrm
+
+workflows:
+  version: 2
+  build_and_coverage:
+    jobs:
+      - build
+      - coverage:
+          requires:
+            - build
