@@ -104,11 +104,22 @@ TEST(TfrmTree, UpdateChain)
   tfrm_tree.Update(y_from_x);
 }
 
-TEST(TfrmTree, UpdateNonexistent)
+TEST(TfrmTree, UpdateNonexistentToFrame)
 {
   MyTfrmTree tfrm_tree("world");
   const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  EXPECT_THROW(tfrm_tree.Update(test_from_world), ttfrm::TfrmTreeUpdateNonexistentException);
+  tfrm_tree.Insert(test_from_world);
+  const MyTfrm junk1_from_world = MyTfrm::Identity("junk1", "world");
+  EXPECT_THROW(tfrm_tree.Update(junk1_from_world), ttfrm::TfrmTreeUpdateNonexistentException);
+}
+
+TEST(TfrmTree, UpdateNonexistentFromFrame)
+{
+  MyTfrmTree tfrm_tree("world");
+  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
+  tfrm_tree.Insert(test_from_world);
+  const MyTfrm test_from_junk2 = MyTfrm::Identity("test", "junk2");
+  EXPECT_THROW(tfrm_tree.Update(test_from_junk2), ttfrm::TfrmTreeUpdateNonexistentException);
 }
 
 TEST(TfrmTree, Get)
@@ -119,11 +130,21 @@ TEST(TfrmTree, Get)
   const MyTfrm test_from_world2 = tfrm_tree.Get("test", "world");
 }
 
-TEST(TfrmTree, GetNonexistent)
+TEST(TfrmTree, GetNonexistentToFrame)
 {
   MyTfrmTree tfrm_tree("world");
   const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  EXPECT_THROW(const MyTfrm test_from_world2 = tfrm_tree.Get("test", "world"),
+  tfrm_tree.Insert(test_from_world);
+  EXPECT_THROW(const MyTfrm test_from_world2 = tfrm_tree.Get("junk1", "world"),
+               ttfrm::TfrmTreeGetNonexistentException);
+}
+
+TEST(TfrmTree, GetNonexistentFromFrame)
+{
+  MyTfrmTree tfrm_tree("world");
+  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
+  tfrm_tree.Insert(test_from_world);
+  EXPECT_THROW(const MyTfrm test_from_world2 = tfrm_tree.Get("test", "junk2"),
                ttfrm::TfrmTreeGetNonexistentException);
 }
 
