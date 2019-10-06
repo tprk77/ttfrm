@@ -1,6 +1,7 @@
 # ttfrm #
 
 [![CircleCI Status Shield][shield_circleci]][build_circleci]
+[![Coveralls Status Shield][shield_coveralls]][build_coveralls]
 [![Code Size Shield][shield_code_size]][ref_floppy_disk]
 [![License Shield][shield_license]][file_license_md]
 
@@ -202,10 +203,12 @@ $ make demo
 <!-- Links -->
 
 [build_circleci]: https://circleci.com/gh/tprk77/ttfrm
+[build_coveralls]: https://coveralls.io/github/tprk77/ttfrm
 [file_license_md]: https://github.com/tprk77/ttfrm/blob/master/LICENSE.md
 [ref_floppy_disk]: https://en.wikipedia.org/wiki/History_of_the_floppy_disk
 [shield_circleci]: https://img.shields.io/circleci/build/github/tprk77/ttfrm/master?token=9d161918287a4e250f49ae8df77fff90432ce358
 [shield_code_size]: https://img.shields.io/github/languages/code-size/tprk77/ttfrm
+[shield_coveralls]: https://img.shields.io/coveralls/github/tprk77/ttfrm
 [shield_license]: https://img.shields.io/github/license/tprk77/ttfrm
 
 <!-- Local Variables: -->
