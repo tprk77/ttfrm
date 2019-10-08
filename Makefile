@@ -1,7 +1,7 @@
 # Makefile
 
 BUILD_GRAPHICS := true
-MESON_OPTIONS := -Dgraphics=$(BUILD_GRAPHICS)
+MESON_FLAGS := -Dgraphics=$(BUILD_GRAPHICS)
 
 all: | build
 	cd build && ninja
@@ -23,7 +23,7 @@ install: | build
 	cd build && ninja install
 
 build:
-	meson $(MESON_OPTIONS) build
+	meson $(MESON_FLAGS) build
 
 coverage: | build_cov
 	cd build_cov && ninja tfrm_test tfrm_tree_test
