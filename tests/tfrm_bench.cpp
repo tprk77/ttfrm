@@ -28,7 +28,7 @@ std::tuple<std::string, std::size_t> CompareSizes()
   else {
     descriptor = "IS THE SAME SIZE AS";
   }
-  return {descriptor, memory_saved};
+  return std::make_tuple(descriptor, memory_saved);
 }
 
 void MemoryUsageInfo()
@@ -86,7 +86,7 @@ std::tuple<double, double> Benchmark(const std::size_t warmup_iters, const std::
   const double total_time_s =
       std::chrono::duration_cast<std::chrono::milliseconds>(total_time).count() / 1000.0;
   const double avg_time_us = total_time_s * (1.0e6 / num_iters);
-  return {total_time_s, avg_time_us};
+  return std::make_tuple(total_time_s, avg_time_us);
 }
 
 struct BenchFunc {

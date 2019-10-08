@@ -1,9 +1,14 @@
 # meson.build
 
 project('ttfrm', 'cpp',
-  default_options : ['warning_level=3', 'cpp_std=c++14'],
   version : '0.1.0',
-  license : 'MIT')
+  license : 'MIT',
+  default_options : [
+    'cpp_std=c++11',
+    'buildtype=debugoptimized',
+    'warning_level=3',
+    'werror=true'
+  ])
 
 ######################
 # Declare Dependency #
