@@ -14,6 +14,19 @@ jobs:
           name: Run the tests
           command: |
             make test
+  build_xenial:
+    docker:
+      - image: tprk77/ttfrmci:xenial
+    steps:
+      - checkout
+      - run:
+          name: Build tests and utilities
+          command: |
+            make BUILD_GRAPHICS=false
+      - run:
+          name: Run the tests
+          command: |
+            make test
   coverage:
     docker:
       - image: tprk77/ttfrmci
@@ -35,6 +48,8 @@ workflows:
   build_and_coverage:
     jobs:
       - build
+      - build_xenial
       - coverage:
           requires:
             - build
+            - build_xenial
