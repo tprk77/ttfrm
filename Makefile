@@ -41,3 +41,11 @@ build_cov:
 
 clean:
 	-rm -rf build build_cov
+
+BUILD_DEPENDS := python3-pip ninja-build
+
+depends:
+	sudo apt-get install $(BUILD_DEPENDS) # UBUNTU ONLY
+	sudo -H pip3 install meson # UBUNTU ONLY
+
+.PHONY: all test bench demo install coverage clean depends
