@@ -166,18 +166,19 @@ tim@computer:~/ttfrm$ make bench
 // CPU USAGE INFO //
 ////////////////////
 
-Running ttfrm::Tfrm<int> benchmarks over 1M iterations... Done!
-Running Eigen::Isometry3d benchmarks over 1M iterations... Done!
+Running ttfrm::Tfrm<int> benchmarks over 100M iterations... Done!
+Running Eigen::Isometry3d benchmarks over 100M iterations... Done!
 
 CPU usage summary:
   ttfrm::Tfrm<int> benchmarks:
-    Apply:   Took 1.416 s (1.416 us average)
-    Compose: Took 2.383 s (2.383 us average)  # <-- Quaternions FTW!
-    Inverse: Took 2.706 s (2.706 us average)
+    Apply:   Took 0.831 s (8 ns average)
+    Compose: Took 2.706 s (27 ns average)
+    Inverse: Took 3.272 s (32 ns average)
   Eigen::Isometry3d benchmarks:
-    Apply:   Took 1.07 s (1.07 us average)
-    Compose: Took 4.834 s (4.834 us average)
-    Inverse: Took 2.748 s (2.748 us average)
+    Apply:   Took 0.503 s (5 ns average)
+    Compose: Took 3.431 s (34 ns average)
+    Inverse: Took 1.602 s (16 ns average)
+...
 ```
 
 As you can see (and do try this at home!) composing transforms is faster with
