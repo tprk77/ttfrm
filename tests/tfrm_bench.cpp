@@ -7,8 +7,8 @@
 
 #include "test_utils.hpp"
 
-// Blank struct for placeholder ID
 struct EmptyId {
+  // Blank struct for placeholder ID
 };
 
 template <typename FirstType, typename SecondType>
@@ -36,7 +36,6 @@ void MemoryUsageInfo()
   fmt::print("///////////////////////\n");
   fmt::print("// MEMORY USAGE INFO //\n");
   fmt::print("///////////////////////\n\n");
-  // Just display some info about some sizes
   fmt::print("Sizes of ttfrm types:\n");
   fmt::print("  sizeof(ttfrm::Quat) = {}\n", sizeof(ttfrm::Quat));
   fmt::print("  sizeof(ttfrm::Quat) = {}\n", sizeof(ttfrm::Quat));
@@ -68,9 +67,21 @@ void MemoryUsageInfo()
   fmt::print("\n\n");
 }
 
+struct BenchFunc {
+  virtual ~BenchFunc() {}
+  virtual void operator()() = 0;
+  virtual std::size_t GetResultHash() const = 0;
+};
+
+struct BenchResult {
+  double total_time_s;
+  double average_time_ns;
+  std::size_t result_hash;
+};
+
 template <typename BenchFunc>
-std::tuple<double, double> Benchmark(const std::size_t warmup_iters, const std::size_t num_iters,
-                                     BenchFunc bench_func)
+BenchResult Benchmark(const std::size_t warmup_iters, const std::size_t num_iters,
+                      BenchFunc bench_func)
 {
   // Warmup, not timed
   for (std::size_t ii = 0; ii < warmup_iters; ++ii) {
@@ -83,16 +94,51 @@ std::tuple<double, double> Benchmark(const std::size_t warmup_iters, const std::
   }
   const auto end_time = std::chrono::steady_clock::now();
   const auto total_time = end_time - start_time;
-  const double total_time_s =
-      std::chrono::duration_cast<std::chrono::milliseconds>(total_time).count() / 1000.0;
-  const double avg_time_us = total_time_s * (1.0e6 / num_iters);
-  return std::make_tuple(total_time_s, avg_time_us);
+  const std::size_t total_time_ns =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(total_time).count();
+  const double total_time_s = total_time_ns / 1.0e9;
+  const double average_time_ns = total_time_ns / num_iters;
+  const std::size_t result_hash = bench_func.GetResultHash();
+  return {total_time_s, average_time_ns, result_hash};
 }
 
-struct BenchFunc {
-  virtual ~BenchFunc() {}
-  virtual void operator()() = 0;
-};
+template <typename T>
+std::size_t HashCombine(const T& val)
+{
+  return std::hash<T>()(val);
+}
+
+template <typename T, typename... Rest>
+std::size_t HashCombine(const T& val, const Rest&... rest)
+{
+  const std::size_t orig_hash = std::hash<T>()(val);
+  const std::size_t next_hash = HashCombine(rest...);
+  return orig_hash ^ (next_hash + 0x9e3779b9 + (orig_hash << 6) + (orig_hash >> 2));
+}
+
+std::size_t HashVec3(const ttfrm::Vec3& vec)
+{
+  return HashCombine(vec.x(), vec.y(), vec.z());
+}
+
+std::size_t HashQuat(const ttfrm::Quat& quat)
+{
+  return HashCombine(quat.w(), quat.x(), quat.y(), quat.z());
+}
+
+std::size_t HashTfrm(const ttfrm::Tfrm<int>& tfrm)
+{
+  return HashCombine(HashQuat(tfrm.Rotation()), HashVec3(tfrm.Translation()));
+}
+
+std::size_t HashIsometry3d(const Eigen::Isometry3d& iso)
+{
+  const auto& matrix = iso.matrix();
+  return HashCombine(matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3), matrix(1, 0),
+                     matrix(1, 1), matrix(1, 2), matrix(1, 3), matrix(2, 0), matrix(2, 1),
+                     matrix(2, 2), matrix(2, 3), matrix(3, 0), matrix(3, 1), matrix(3, 2),
+                     matrix(3, 3));
+}
 
 struct TtfrmApplyBench : public BenchFunc {
   ttfrm::Tfrm<int> tfrm;
@@ -103,6 +149,11 @@ struct TtfrmApplyBench : public BenchFunc {
   void operator()() override
   {
     vec = tfrm * vec;
+  }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashVec3(vec);
   }
 };
 
@@ -115,6 +166,11 @@ struct TtfrmComposeBench : public BenchFunc {
   {
     tfrm = tfrm * tfrm;
   }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashTfrm(tfrm);
+  }
 };
 
 struct TtfrmInverseBench : public BenchFunc {
@@ -125,6 +181,11 @@ struct TtfrmInverseBench : public BenchFunc {
   void operator()() override
   {
     tfrm = tfrm.Inverse();
+  }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashTfrm(tfrm);
   }
 };
 
@@ -138,6 +199,11 @@ struct EigenApplyBench : public BenchFunc {
   {
     vec = iso * vec;
   }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashVec3(vec);
+  }
 };
 
 struct EigenComposeBench : public BenchFunc {
@@ -148,6 +214,11 @@ struct EigenComposeBench : public BenchFunc {
   void operator()() override
   {
     iso = iso * iso;
+  }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashIsometry3d(iso);
   }
 };
 
@@ -160,7 +231,23 @@ struct EigenInverseBench : public BenchFunc {
   {
     iso = iso.inverse();
   }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashIsometry3d(iso);
+  }
 };
+
+std::string StringifyTimeSummary(const BenchResult& bench_res)
+{
+  return fmt::format("Took {:0.3f} s ({} ns average)", bench_res.total_time_s,
+                     bench_res.average_time_ns);
+}
+
+std::string StringifyHash(const BenchResult& bench_res)
+{
+  return fmt::format("{:0>20}", bench_res.result_hash);
+}
 
 void CpuUsageInfo()
 {
@@ -171,33 +258,37 @@ void CpuUsageInfo()
   const ttfrm::Vec3 trans = {2.0, 1.0, 0.0};
   const ttfrm::Tfrm<int> tfrm(0, 0, rot, trans);
   const Eigen::Isometry3d iso = tfrm.AsIsometry();
-  fmt::print("Running ttfrm::Tfrm<int> benchmarks over 1M iterations... ");
+  fmt::print("Running ttfrm::Tfrm<int> benchmarks over 100M iterations... ");
   std::cout << std::flush;
-  const auto tfrm_apply_tuple = Benchmark(1000, 1000000, TtfrmApplyBench(tfrm));
-  const auto tfrm_compose_tuple = Benchmark(1000, 1000000, TtfrmComposeBench(tfrm));
-  const auto tfrm_inverse_tuple = Benchmark(1000, 1000000, TtfrmInverseBench(tfrm));
+  const auto tfrm_apply_res = Benchmark(1000, 100000000, TtfrmApplyBench(tfrm));
+  const auto tfrm_compose_res = Benchmark(1000, 100000000, TtfrmComposeBench(tfrm));
+  const auto tfrm_inverse_res = Benchmark(1000, 100000000, TtfrmInverseBench(tfrm));
   fmt::print("Done!\n");
-  fmt::print("Running Eigen::Isometry3d benchmarks over 1M iterations... ");
+  fmt::print("Running Eigen::Isometry3d benchmarks over 100M iterations... ");
   std::cout << std::flush;
-  const auto iso_apply_tuple = Benchmark(1000, 1000000, EigenApplyBench(iso));
-  const auto iso_compose_tuple = Benchmark(1000, 1000000, EigenComposeBench(iso));
-  const auto iso_inverse_tuple = Benchmark(1000, 1000000, EigenInverseBench(iso));
+  const auto iso_apply_res = Benchmark(1000, 100000000, EigenApplyBench(iso));
+  const auto iso_compose_res = Benchmark(1000, 100000000, EigenComposeBench(iso));
+  const auto iso_inverse_res = Benchmark(1000, 100000000, EigenInverseBench(iso));
   fmt::print("Done!\n\n");
   fmt::print("CPU usage summary:\n");
   fmt::print("  ttfrm::Tfrm<int> benchmarks:\n");
-  fmt::print("    Apply:   Took {} s ({} us average)\n", std::get<0>(tfrm_apply_tuple),
-             std::get<1>(tfrm_apply_tuple));
-  fmt::print("    Compose: Took {} s ({} us average)\n", std::get<0>(tfrm_compose_tuple),
-             std::get<1>(tfrm_compose_tuple));
-  fmt::print("    Inverse: Took {} s ({} us average)\n", std::get<0>(tfrm_inverse_tuple),
-             std::get<1>(tfrm_inverse_tuple));
+  fmt::print("    Apply:   {}\n", StringifyTimeSummary(tfrm_apply_res));
+  fmt::print("    Compose: {}\n", StringifyTimeSummary(tfrm_compose_res));
+  fmt::print("    Inverse: {}\n", StringifyTimeSummary(tfrm_inverse_res));
   fmt::print("  Eigen::Isometry3d benchmarks:\n");
-  fmt::print("    Apply:   Took {} s ({} us average)\n", std::get<0>(iso_apply_tuple),
-             std::get<1>(iso_apply_tuple));
-  fmt::print("    Compose: Took {} s ({} us average)\n", std::get<0>(iso_compose_tuple),
-             std::get<1>(iso_compose_tuple));
-  fmt::print("    Inverse: Took {} s ({} us average)\n", std::get<0>(iso_inverse_tuple),
-             std::get<1>(iso_inverse_tuple));
+  fmt::print("    Apply:   {}\n", StringifyTimeSummary(iso_apply_res));
+  fmt::print("    Compose: {}\n", StringifyTimeSummary(iso_compose_res));
+  fmt::print("    Inverse: {}\n", StringifyTimeSummary(iso_inverse_res));
+  fmt::print("\n");
+  fmt::print("Result hashes:\n");
+  fmt::print("  ttfrm::Tfrm<int> benchmarks:\n");
+  fmt::print("    Apply:   {}\n", StringifyHash(tfrm_apply_res));
+  fmt::print("    Compose: {}\n", StringifyHash(tfrm_compose_res));
+  fmt::print("    Inverse: {}\n", StringifyHash(tfrm_inverse_res));
+  fmt::print("  Eigen::Isometry3d benchmarks:\n");
+  fmt::print("    Apply:   {}\n", StringifyHash(iso_apply_res));
+  fmt::print("    Compose: {}\n", StringifyHash(iso_compose_res));
+  fmt::print("    Inverse: {}\n", StringifyHash(iso_inverse_res));
   fmt::print("\n\n");
 }
 
