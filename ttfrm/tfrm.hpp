@@ -262,13 +262,13 @@ Tfrm<FrameId> Tfrm<FrameId>::Compose(const Tfrm& other_tfrm) const
 template <typename FrameId>
 Tfrm<FrameId> Tfrm<FrameId>::operator*(const Tfrm& other_tfrm) const
 {
-  return this->Compose(other_tfrm);
+  return Compose(other_tfrm);
 }
 
 template <typename FrameId>
 Tfrm<FrameId> Tfrm<FrameId>::operator()(const Tfrm& other_tfrm) const
 {
-  return this->Compose(other_tfrm);
+  return Compose(other_tfrm);
 }
 
 template <typename FrameId>
@@ -281,13 +281,13 @@ Vec3 Tfrm<FrameId>::Apply(const Vec3& trans) const
 template <typename FrameId>
 Vec3 Tfrm<FrameId>::operator*(const Vec3& trans) const
 {
-  return this->Apply(trans);
+  return Apply(trans);
 }
 
 template <typename FrameId>
 Vec3 Tfrm<FrameId>::operator()(const Vec3& trans) const
 {
-  return this->Apply(trans);
+  return Apply(trans);
 }
 
 template <typename FrameId>
