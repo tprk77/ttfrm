@@ -189,6 +189,27 @@ struct TtfrmInverseBench : public BenchFunc {
   }
 };
 
+struct TtfrmInterpolateBench : public BenchFunc {
+  ttfrm::Tfrm<int> tfrm;
+  ttfrm::Tfrm<int> other_tfrm;
+
+  explicit TtfrmInterpolateBench(const ttfrm::Tfrm<int>& tfrm)
+      : tfrm(tfrm), other_tfrm(0, 0, tfrm.Rotation().inverse(), 2.0 * tfrm.Translation())
+  {
+    // Do nothing
+  }
+
+  void operator()() override
+  {
+    tfrm = tfrm.Interpolate(0, other_tfrm, 0.01);
+  }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashTfrm(tfrm);
+  }
+};
+
 struct EigenApplyBench : public BenchFunc {
   Eigen::Isometry3d iso;
   Eigen::Vector3d vec;
@@ -238,6 +259,36 @@ struct EigenInverseBench : public BenchFunc {
   }
 };
 
+struct EigenInterpolateBench : public BenchFunc {
+  Eigen::Isometry3d iso;
+  Eigen::Isometry3d other_iso;
+
+  explicit EigenInterpolateBench(const Eigen::Isometry3d& iso)
+      : iso(iso),
+        other_iso(Eigen::Translation3d(2.0 * iso.translation())
+                  * Eigen::Quaterniond(iso.rotation().inverse()))
+  {
+    // Do nothing
+  }
+
+  void operator()() override
+  {
+    // So you can't really do spherical linear interpolation (slerp) with matrices! So this is not
+    // really a fair benchmark, but for illustrative purposes, if you really needed slerp, and all
+    // you had was matrices, this is how long it would take you to do the conversions and do it.
+    const Eigen::Quaterniond iso_rot(iso.rotation());
+    const Eigen::Quaterniond other_iso_rot(other_iso.rotation());
+    iso = (Eigen::Translation3d(iso.translation()
+                                + 0.01 * (other_iso.translation() - iso.translation()))
+           * iso_rot.slerp(0.01, other_iso_rot));
+  }
+
+  std::size_t GetResultHash() const override
+  {
+    return HashIsometry3d(iso);
+  }
+};
+
 std::string StringifyTimeSummary(const BenchResult& bench_res)
 {
   return fmt::format("Took {:0.3f} s ({} ns average)", bench_res.total_time_s,
@@ -263,32 +314,40 @@ void CpuUsageInfo()
   const auto tfrm_apply_res = Benchmark(1000, 100000000, TtfrmApplyBench(tfrm));
   const auto tfrm_compose_res = Benchmark(1000, 100000000, TtfrmComposeBench(tfrm));
   const auto tfrm_inverse_res = Benchmark(1000, 100000000, TtfrmInverseBench(tfrm));
+  const auto tfrm_interp_res = Benchmark(1000, 100000000, TtfrmInterpolateBench(tfrm));
   fmt::print("Done!\n");
   fmt::print("Running Eigen::Isometry3d benchmarks over 100M iterations... ");
   std::cout << std::flush;
   const auto iso_apply_res = Benchmark(1000, 100000000, EigenApplyBench(iso));
   const auto iso_compose_res = Benchmark(1000, 100000000, EigenComposeBench(iso));
   const auto iso_inverse_res = Benchmark(1000, 100000000, EigenInverseBench(iso));
+  const auto iso_interp_res = Benchmark(1000, 10000000, EigenInterpolateBench(iso));
   fmt::print("Done!\n\n");
   fmt::print("CPU usage summary:\n");
   fmt::print("  ttfrm::Tfrm<int> benchmarks:\n");
   fmt::print("    Apply:   {}\n", StringifyTimeSummary(tfrm_apply_res));
   fmt::print("    Compose: {}\n", StringifyTimeSummary(tfrm_compose_res));
   fmt::print("    Inverse: {}\n", StringifyTimeSummary(tfrm_inverse_res));
+  fmt::print("    Interp:  {}\n", StringifyTimeSummary(tfrm_interp_res));
   fmt::print("  Eigen::Isometry3d benchmarks:\n");
   fmt::print("    Apply:   {}\n", StringifyTimeSummary(iso_apply_res));
   fmt::print("    Compose: {}\n", StringifyTimeSummary(iso_compose_res));
   fmt::print("    Inverse: {}\n", StringifyTimeSummary(iso_inverse_res));
+  fmt::print("    Interp:  {} [*]\n", StringifyTimeSummary(iso_interp_res));
+  fmt::print("\n");
+  fmt::print("[*]: 10M iterations only. Includes required quaternion conversions for slerp.\n");
   fmt::print("\n");
   fmt::print("Result hashes:\n");
   fmt::print("  ttfrm::Tfrm<int> benchmarks:\n");
   fmt::print("    Apply:   {}\n", StringifyHash(tfrm_apply_res));
   fmt::print("    Compose: {}\n", StringifyHash(tfrm_compose_res));
   fmt::print("    Inverse: {}\n", StringifyHash(tfrm_inverse_res));
+  fmt::print("    Interp:  {}\n", StringifyHash(tfrm_interp_res));
   fmt::print("  Eigen::Isometry3d benchmarks:\n");
   fmt::print("    Apply:   {}\n", StringifyHash(iso_apply_res));
   fmt::print("    Compose: {}\n", StringifyHash(iso_compose_res));
   fmt::print("    Inverse: {}\n", StringifyHash(iso_inverse_res));
+  fmt::print("    Interp:  {}\n", StringifyHash(iso_interp_res));
   fmt::print("\n\n");
 }
 
