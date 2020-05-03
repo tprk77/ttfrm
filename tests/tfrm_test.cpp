@@ -356,7 +356,7 @@ TEST(Tfrm, ComposePoseAccuracy)
   const auto& pose_b_in_world = world_from_b;
   const MyTfrm pose_b_in_a = world_from_a.Inverse() * pose_b_in_world;
   const ttfrm::Vec3 pose_b_in_a_trans = pose_b_in_a.Translation();
-  const ttfrm::Quat pose_b_in_a_rot = pose_b_in_a.Rotation().normalized();
+  const ttfrm::Quat pose_b_in_a_rot = pose_b_in_a.Rotation();
   EXPECT_NEAR(pose_b_in_a_trans.x(), -2.0, 1.0e-6);
   EXPECT_NEAR(pose_b_in_a_trans.y(), 0.0, 1.0e-6);
   EXPECT_NEAR(pose_b_in_a_trans.z(), 1.0, 1.0e-6);
