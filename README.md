@@ -156,8 +156,9 @@ const auto pose_a_in_world = a_from_world.Inverse();
 
 Quaternions have a couple things going for them. First, they use less space
 than a rotation matrix. So you save a little memory with each transform.
-Second, quaternions are faster for composing transforms. Don't believe me? Run
-the benchmark. Here's an example result:
+Second, quaternions are faster for composing transforms. Third, quaternions are
+faster for interpolating. Don't believe me? Run the benchmark. Here's an
+example result:
 
 ```text
 tim@computer:~/ttfrm$ make bench
@@ -171,13 +172,17 @@ Running Eigen::Isometry3d benchmarks over 100M iterations... Done!
 
 CPU usage summary:
   ttfrm::Tfrm<int> benchmarks:
-    Apply:   Took 0.831 s (8 ns average)
-    Compose: Took 2.706 s (27 ns average)
-    Inverse: Took 3.272 s (32 ns average)
+    Apply:   Took 0.816 s (8 ns average)
+    Compose: Took 2.681 s (26 ns average)
+    Inverse: Took 3.271 s (32 ns average)
+    Interp:  Took 2.359 s (23 ns average)
   Eigen::Isometry3d benchmarks:
     Apply:   Took 0.503 s (5 ns average)
-    Compose: Took 3.431 s (34 ns average)
+    Compose: Took 3.433 s (34 ns average)
     Inverse: Took 1.602 s (16 ns average)
+    Interp:  Took 4.692 s (469 ns average) [*]
+
+[*]: 10M iterations only. Includes required quaternion conversions for slerp.
 ...
 ```
 
