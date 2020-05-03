@@ -233,6 +233,23 @@ TEST(Tfrm, ComposeCall)
   EXPECT_EQ(test_from_world.FromFrame(), "world");
 }
 
+TEST(Tfrm, Interpolate)
+{
+  const MyTfrm x_from_world = MyTfrm::Identity("x", "world");
+  const MyTfrm y_from_world = MyTfrm::Identity("y", "world");
+  const MyTfrm test_from_world = x_from_world.Interpolate("test", y_from_world, 0.77);
+  EXPECT_EQ(test_from_world.ToFrame(), "test");
+  EXPECT_EQ(test_from_world.FromFrame(), "world");
+}
+
+TEST(Tfrm, InterpolateBad)
+{
+  const MyTfrm x_from_world = MyTfrm::Identity("x", "world");
+  const MyTfrm y_from_world = MyTfrm::Identity("y", "junk");
+  EXPECT_THROW(const MyTfrm garbage = x_from_world.Interpolate("test", y_from_world, 0.77),
+               ttfrm::TfrmInterpolateException);
+}
+
 TEST(Tfrm, AsIsometry)
 {
   const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
@@ -346,6 +363,24 @@ TEST(Tfrm, ComposePoseAccuracy)
   // Special comparison because (0.0, 180.0, 0.0) == (180.0, 0.0, 180.0), etc
   const ttfrm::Quat expected_rot = QuatFromEulerXYZ(RadFromDeg({0.0, 180.0, 0.0}));
   EXPECT_LT(pose_b_in_a_rot.angularDistance(expected_rot), 1.0e-6);
+}
+
+TEST(Tfrm, InterpolateAccuracy)
+{
+  const ttfrm::Quat x_rot = QuatFromEulerXYZ(RadFromDeg({45.0, 90.0, 20.0}));
+  const ttfrm::Vec3 x_trans = {2.0, 1.0, 0.0};
+  const MyTfrm x_from_world("x", "world", x_rot, x_trans);
+  const ttfrm::Quat y_rot = QuatFromEulerXYZ(RadFromDeg({20.0, 45.0, 90.0}));
+  const ttfrm::Vec3 y_trans = {3.0, 4.0, 5.0};
+  const MyTfrm y_from_world("y", "world", y_rot, y_trans);
+  const MyTfrm test_from_world = x_from_world.Interpolate("test", y_from_world, 0.77);
+  const ttfrm::Quat test_from_world_rot = test_from_world.Rotation();
+  const ttfrm::Quat expected_rot = QuatFromEulerXYZ(RadFromDeg({14.443773, 54.984770, 84.443773}));
+  EXPECT_LT(test_from_world_rot.angularDistance(expected_rot), 1.0e-6);
+  const ttfrm::Vec3 test_from_world_trans = test_from_world.Translation();
+  EXPECT_NEAR(test_from_world_trans.x(), 2.770000, 1.0e-6);
+  EXPECT_NEAR(test_from_world_trans.y(), 3.310000, 1.0e-6);
+  EXPECT_NEAR(test_from_world_trans.z(), 3.850000, 1.0e-6);
 }
 
 TEST(Tfrm, AsIsometryAccuracy)

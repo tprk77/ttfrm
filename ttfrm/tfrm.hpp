@@ -92,6 +92,9 @@ class Tfrm {
   Vec3 operator*(const Vec3& trans) const;
   Vec3 operator()(const Vec3& trans) const;
 
+  Tfrm<FrameId> Interpolate(const FrameId& interp_to_frame, const Tfrm<FrameId>& other_tfrm,
+                            double t) const;
+
   Eigen::Isometry3d AsIsometry() const;
 
  private:
@@ -110,6 +113,14 @@ class TfrmComposeException : public std::runtime_error {
   TfrmComposeException(const Tfrm<FrameId>& tfrm, const Tfrm<FrameId>& other_tfrm);
   TfrmComposeException(const TfrmComposeException& other_comp_excp) = default;
   TfrmComposeException(TfrmComposeException&& other_comp_excp) = default;
+};
+
+class TfrmInterpolateException : public std::runtime_error {
+ public:
+  template <typename FrameId>
+  TfrmInterpolateException(const Tfrm<FrameId>& tfrm, const Tfrm<FrameId>& other_tfrm);
+  TfrmInterpolateException(const TfrmInterpolateException& other_comp_excp) = default;
+  TfrmInterpolateException(TfrmInterpolateException&& other_comp_excp) = default;
 };
 
 template <typename FrameId>
@@ -291,6 +302,17 @@ Vec3 Tfrm<FrameId>::operator()(const Vec3& trans) const
 }
 
 template <typename FrameId>
+Tfrm<FrameId> Tfrm<FrameId>::Interpolate(const FrameId& interp_to_frame,
+                                         const Tfrm<FrameId>& other_tfrm, double ratio) const
+{
+  if (from_frame_ != other_tfrm.from_frame_) {
+    throw TfrmInterpolateException(*this, other_tfrm);
+  }
+  return Tfrm<FrameId>(interp_to_frame, from_frame_, rot_.slerp(ratio, other_tfrm.rot_),
+                       trans_ + ratio * (other_tfrm.trans_ - trans_));
+}
+
+template <typename FrameId>
 Eigen::Isometry3d Tfrm<FrameId>::AsIsometry() const
 {
   // The concatenation of the translation and the rotation
@@ -301,6 +323,15 @@ template <typename FrameId>
 TfrmComposeException::TfrmComposeException(const Tfrm<FrameId>& tfrm,
                                            const Tfrm<FrameId>& other_tfrm)
     : std::runtime_error(fmt::format("Cannot compose transforms {} and {}",
+                                     Stringify(tfrm.Frames()), Stringify(other_tfrm.Frames())))
+{
+  // Do nothing
+}
+
+template <typename FrameId>
+TfrmInterpolateException::TfrmInterpolateException(const Tfrm<FrameId>& tfrm,
+                                                   const Tfrm<FrameId>& other_tfrm)
+    : std::runtime_error(fmt::format("Cannot interpolate transforms {} and {}",
                                      Stringify(tfrm.Frames()), Stringify(other_tfrm.Frames())))
 {
   // Do nothing
