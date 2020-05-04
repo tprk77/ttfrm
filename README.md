@@ -214,7 +214,7 @@ $ ./build/spirograph_demo
 [shield_circleci]: https://img.shields.io/circleci/build/github/tprk77/ttfrm/master?token=9d161918287a4e250f49ae8df77fff90432ce358
 [shield_code_size]: https://img.shields.io/github/languages/code-size/tprk77/ttfrm
 [shield_coveralls]: https://img.shields.io/coveralls/github/tprk77/ttfrm
-[shield_license]: https://img.shields.io/github/license/tprk77/ttfrm
+[shield_license]: https://img.shields.io/github/license/tprk77/ttfrm?color=informational
 
 <!-- Local Variables: -->
 <!-- fill-column: 79 -->
