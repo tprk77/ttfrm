@@ -50,7 +50,7 @@ build_cov:
 > CXX=g++ meson $(MESON_FLAGS_COV) build_cov
 
 build_cov/build.sentinel: $(TTFRM_SRCS) | build_cov
-> ninja $(NINJA_FLAGS) -C build_cov
+> ninja $(NINJA_FLAGS) -C build_cov tfrm_test tfrm_tree_test
 > touch build_cov/build.sentinel
 
 coverage: build_cov/build.sentinel
