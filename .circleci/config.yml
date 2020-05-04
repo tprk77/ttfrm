@@ -13,7 +13,7 @@ jobs:
       - run:
           name: Run the tests
           command: |
-            make test
+            make check
   build_xenial:
     docker:
       - image: tprk77/ttfrmci:xenial
@@ -26,7 +26,7 @@ jobs:
       - run:
           name: Run the tests
           command: |
-            make test
+            make check
   coverage:
     docker:
       # Coverage only happens on Bionic, which has the tools
