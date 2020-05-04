@@ -53,7 +53,7 @@ The build uses Meson and Ninja. You will need to install those. On Ubuntu you
 can probably run something like:
 
 ```text
-$ sudo apt-get install python3 python3-pip ninja-build
+$ sudo apt-get install python3-pip ninja-build
 $ sudo pip3 install meson
 ```
 
@@ -66,34 +66,32 @@ Meson should automatically download the dependencies for you.
 $ sudo apt-get install libeigen3-dev libfmt-dev libgtest-dev libsdl2-dev
 ```
 
-You can then run the build the easy way:
-
-```text
-$ make
-```
-
-Or you can do it the old fashioned way:
+Once the dependencies are in place, we can run the build:
 
 ```text
 $ meson build
-$ cd build
-$ ninja
+$ ninja -C build
 ```
 
 ## Testing ##
 
-Run the tests using the following command:
+Run the tests using the following commands:
 
 ```text
-$ make test
+$ meson build
+$ ninja -C build
+$ ./build/tfrm_test
+$ ./build/tfrm_tree_test
 ```
 
 ## Benchmarking ##
 
-You can run the benchmarks in a similar way:
+Run the benchmarks using the following commands:
 
 ```text
-$ make bench
+$ meson build
+$ ninja -C build
+$ ./build/tfrm_bench
 ```
 
 ## Chaining Transforms ##
@@ -161,7 +159,6 @@ faster for interpolating. Don't believe me? Run the benchmark. Here's an
 example result:
 
 ```text
-tim@computer:~/ttfrm$ make bench
 ...
 ////////////////////
 // CPU USAGE INFO //
@@ -196,10 +193,12 @@ poses, quaternions will give you better performance.
 
 In the `tests` directory there is a simple 2D Spirograph-like demo. It works by
 composing several parameterized, circular transforms. You can run it using the
-following command:
+following commands:
 
 ```text
-$ make demo
+$ meson build
+$ ninja -C build
+$ ./build/spirograph_demo
 ```
 
 <p align="center">
