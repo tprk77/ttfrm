@@ -25,7 +25,7 @@ ttfrm::Tfrm<std::string> CircleTransform(const std::string& to_frame, const std:
 
 std::vector<ttfrm::Vec3> Spirograph()
 {
-  constexpr std::size_t NUM_STEPS = 1000;
+  constexpr std::size_t NUM_STEPS = 10000;
   constexpr double R1 = 200.0;
   constexpr double R2 = 100.0;
   constexpr double R3 = 50.0;
@@ -36,9 +36,9 @@ std::vector<ttfrm::Vec3> Spirograph()
   for (std::size_t ii = 0; ii < NUM_STEPS; ++ii) {
     const double tt = static_cast<double>(ii) / (NUM_STEPS - 1);
     const auto center_from_c1 = CircleTransform("center", "c1", R1, tt);
-    const auto c1_from_c2 = CircleTransform("c1", "c2", R2, 16.0 * tt);
-    const auto c2_from_c3 = CircleTransform("c2", "c3", R3, 16.0 * tt);
-    const auto c3_from_c4 = CircleTransform("c3", "c4", R4, 16.0 * tt);
+    const auto c1_from_c2 = CircleTransform("c1", "c2", R2, 32.0 * tt);
+    const auto c2_from_c3 = CircleTransform("c2", "c3", R3, 64.0 * tt);
+    const auto c3_from_c4 = CircleTransform("c3", "c4", R4, 64.0 * tt);
     const auto corner_from_c =
         corner_from_center * center_from_c1 * c1_from_c2 * c2_from_c3 * c3_from_c4;
     vecs.push_back(corner_from_c.Translation());
