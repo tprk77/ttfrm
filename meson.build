@@ -33,6 +33,9 @@ test('tfrm_test', tfrm_test)
 tfrm_tree_test = executable(
   'tfrm_tree_test', 'tests/tfrm_tree_test.cpp', dependencies : [ttfrm_dep, gtest_dep])
 test('tfrm_tree_test', tfrm_tree_test)
+fixed_point_test = executable(
+  'fixed_point_test', 'tests/fixed_point_test.cpp', dependencies : [ttfrm_dep, gtest_dep])
+test('fixed_point_test', fixed_point_test)
 
 # Benchmark utility
 tfrm_bench = executable('tfrm_bench', 'tests/tfrm_bench.cpp', dependencies : [ttfrm_dep])
