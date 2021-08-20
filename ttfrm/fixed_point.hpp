@@ -172,7 +172,10 @@ template <typename Integer, std::size_t frac_width>
 FixedPoint<Integer, frac_width>& FixedPoint<Integer, frac_width>::operator*=(
     const FixedPoint& other_fxpt)
 {
+  constexpr Integer ROUNDING_MASK = (1 << frac_width) - 1;
+  constexpr Integer ROUNDING_THRES = (1 << (frac_width - 1));
   raw_value *= other_fxpt.raw_value;
+  raw_value += (raw_value & ROUNDING_MASK) < ROUNDING_THRES ? 0 : 1 << frac_width;
   raw_value >>= frac_width;
   return *this;
 }
@@ -181,8 +184,15 @@ template <typename Integer, std::size_t frac_width>
 FixedPoint<Integer, frac_width>& FixedPoint<Integer, frac_width>::operator/=(
     const FixedPoint& other_fxpt)
 {
+  // Do some additional rounding, this should be configurable. Or consider shifting both sides and
+  // using the full frac_width bits to do the rounding, which is probably a better idea.
+  constexpr size_t ROUNDING_BITS = 2;
+  constexpr Integer ROUNDING_MASK = (1 << ROUNDING_BITS) - 1;
+  constexpr Integer ROUNDING_THRES = (1 << (ROUNDING_BITS - 1));
+  raw_value <<= frac_width + ROUNDING_BITS;
   raw_value /= other_fxpt.raw_value;
-  raw_value <<= frac_width;
+  raw_value += (raw_value & ROUNDING_MASK) < ROUNDING_THRES ? 0 : 1 << ROUNDING_BITS;
+  raw_value >>= ROUNDING_BITS;
   return *this;
 }
 
