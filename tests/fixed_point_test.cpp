@@ -108,26 +108,58 @@ TEST(FixedPoint, GreaterThanOrEqual)
 TEST(FixedPoint, AddAssign)
 {
   MyFixedPoint fxpt_a = MyFixedPoint::FromParts(3, 9279);
-  const MyFixedPoint fxpt_b = MyFixedPoint::FromParts(6, 18558);
-  fxpt_a += fxpt_a;
-  EXPECT_EQ(fxpt_a, fxpt_b);
+  const MyFixedPoint fxpt_b = MyFixedPoint::FromParts(3, 9279);
+  const MyFixedPoint fxpt_c = MyFixedPoint::FromParts(6, 18558);
+  fxpt_a += fxpt_b;
+  EXPECT_EQ(fxpt_a, fxpt_c);
   // __builtin_uadd_overflow
   // https://wiki.sei.cmu.edu/confluence/display/c/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
 }
 
 TEST(FixedPoint, SubtractAssign)
 {
-  //
+  MyFixedPoint fxpt_a = MyFixedPoint::FromParts(6, 18558);
+  const MyFixedPoint fxpt_b = MyFixedPoint::FromParts(3, 9279);
+  const MyFixedPoint fxpt_c = MyFixedPoint::FromParts(3, 9279);
+  fxpt_a -= fxpt_b;
+  EXPECT_EQ(fxpt_a, fxpt_c);
 }
 
 TEST(FixedPoint, MultiplyAssign)
 {
-  //
+  MyFixedPoint fxpt_a = MyFixedPoint::FromParts(3, 9279);
+  const MyFixedPoint fxpt_b = MyFixedPoint::FromParts(3, 9279);
+  const MyFixedPoint fxpt_c = MyFixedPoint::FromParts(9, 56988);
+  fxpt_a *= fxpt_b;
+  std::cout << fxpt_a << ' ' << fxpt_b << ' ' << fxpt_c << '\n';
+  std::cout << fxpt_a.AsFloatingPoint() << ' ' << fxpt_b.AsFloatingPoint()
+            << ' ' << fxpt_c.AsFloatingPoint() << '\n';
+  std::cout << fxpt_a.raw_value << ' ' << fxpt_b.raw_value << ' ' << fxpt_c.raw_value << '\n';
+  EXPECT_EQ(fxpt_a, fxpt_c);
+}
+
+TEST(FixedPoint, MultiplyAssign2)
+{
+  MyFixedPoint fxpt_a = MyFixedPoint::FromParts(0, 6241);
+  const MyFixedPoint fxpt_b = MyFixedPoint::FromParts(0, 6241);
+  const MyFixedPoint fxpt_c = MyFixedPoint::FromParts(0, 594);
+  fxpt_a *= fxpt_b;
+  std::cout << fxpt_a << ' ' << fxpt_b << ' ' << fxpt_c << '\n';
+  std::cout << fxpt_a.AsFloatingPoint() << ' ' << fxpt_b.AsFloatingPoint()
+            << ' ' << fxpt_c.AsFloatingPoint() << '\n';
+  std::cout << fxpt_a.raw_value << ' ' << fxpt_b.raw_value << ' ' << fxpt_c.raw_value << '\n';
+  EXPECT_EQ(fxpt_a, fxpt_c);
 }
 
 TEST(FixedPoint, DivideAssign)
 {
-  //
+  MyFixedPoint fxpt_a = MyFixedPoint::FromParts(9, 56988);
+  const MyFixedPoint fxpt_b = MyFixedPoint::FromParts(3, 9279);
+  const MyFixedPoint fxpt_c = MyFixedPoint::FromParts(3, 9279);
+  std::cout << fxpt_a.raw_value << ' ' << fxpt_b.raw_value << ' ' << fxpt_c.raw_value << '\n';
+  // 205886.751936742
+  fxpt_a /= fxpt_b;
+  EXPECT_EQ(fxpt_a, fxpt_c);
 }
 
 TEST(FixedPoint, Add)
