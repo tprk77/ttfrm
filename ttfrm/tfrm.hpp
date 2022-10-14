@@ -255,7 +255,7 @@ Vec3 Tfrm<FrameId>::Translation() const
 template <typename FrameId>
 Tfrm<FrameId> Tfrm<FrameId>::Inverse() const
 {
-  const Quat inv_rot = rot_.inverse();
+  const Quat inv_rot = rot_.conjugate();
   return Tfrm<FrameId>(from_frame_, to_frame_, inv_rot, inv_rot * -trans_);
 }
 
