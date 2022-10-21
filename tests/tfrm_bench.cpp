@@ -1,7 +1,9 @@
 // Copyright (c) 2019 Tim Perkins
 
 #include <chrono>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include <ttfrm/tfrm.hpp>
 
@@ -33,38 +35,40 @@ std::tuple<std::string, std::size_t> CompareSizes()
 
 void MemoryUsageInfo()
 {
-  fmt::print("///////////////////////\n");
-  fmt::print("// MEMORY USAGE INFO //\n");
-  fmt::print("///////////////////////\n\n");
-  fmt::print("Sizes of ttfrm types:\n");
-  fmt::print("  sizeof(ttfrm::Quat) = {}\n", sizeof(ttfrm::Quat));
-  fmt::print("  sizeof(ttfrm::Quat) = {}\n", sizeof(ttfrm::Quat));
-  fmt::print("  sizeof(ttfrm::Vec3) = {}\n", sizeof(ttfrm::Vec3));
-  fmt::print("  sizeof(ttfrm::Tfrm<int>) = {}\n", sizeof(ttfrm::Tfrm<int>));
-  fmt::print("  sizeof(ttfrm::Tfrm<std::uint8_t>) = {}\n", sizeof(ttfrm::Tfrm<std::uint8_t>));
-  fmt::print("  sizeof(ttfrm::Tfrm<std::sting>) = {}\n", sizeof(ttfrm::Tfrm<std::string>));
-  fmt::print("  sizeof(ttfrm::Tfrm<(Empty Struct)>) = {}\n", sizeof(ttfrm::Tfrm<EmptyId>));
-  fmt::print("Sizes of Eigen types:\n");
-  fmt::print("  sizeof(Eigen::Matrix3d) = {}\n", sizeof(Eigen::Matrix3d));
-  fmt::print("  sizeof(Eigen::Vector3d) = {}\n", sizeof(Eigen::Vector3d));
-  fmt::print("  sizeof(Eigen::Matrix4d) = {}\n", sizeof(Eigen::Matrix4d));
-  fmt::print("  sizeof(Eigen::Isometry3d) = {}\n", sizeof(Eigen::Isometry3d));
+  std::cout << "///////////////////////\n";
+  std::cout << "// MEMORY USAGE INFO //\n";
+  std::cout << "///////////////////////\n\n";
+  std::cout << "Sizes of ttfrm types:\n";
+  std::cout << "  sizeof(ttfrm::Quat) = " << sizeof(ttfrm::Quat) << "\n";
+  std::cout << "  sizeof(ttfrm::Quat) = " << sizeof(ttfrm::Quat) << "\n";
+  std::cout << "  sizeof(ttfrm::Vec3) = " << sizeof(ttfrm::Vec3) << "\n";
+  std::cout << "  sizeof(ttfrm::Tfrm<int>) = " << sizeof(ttfrm::Tfrm<int>) << "\n";
+  std::cout << "  sizeof(ttfrm::Tfrm<std::uint8_t>) = " << sizeof(ttfrm::Tfrm<std::uint8_t>)
+            << "\n";
+  std::cout << "  sizeof(ttfrm::Tfrm<std::sting>) = " << sizeof(ttfrm::Tfrm<std::string>) << "\n";
+  std::cout << "  sizeof(ttfrm::Tfrm<(Empty Struct)>) = " << sizeof(ttfrm::Tfrm<EmptyId>) << "\n";
+  std::cout << "Sizes of Eigen types:\n";
+  std::cout << "  sizeof(Eigen::Matrix3d) = " << sizeof(Eigen::Matrix3d) << "\n";
+  std::cout << "  sizeof(Eigen::Vector3d) = " << sizeof(Eigen::Vector3d) << "\n";
+  std::cout << "  sizeof(Eigen::Matrix4d) = " << sizeof(Eigen::Matrix4d) << "\n";
+  std::cout << "  sizeof(Eigen::Isometry3d) = " << sizeof(Eigen::Isometry3d) << "\n";
   const auto int_comp_tuple = CompareSizes<ttfrm::Tfrm<int>, Eigen::Isometry3d>();
   const auto str_comp_tuple = CompareSizes<ttfrm::Tfrm<std::string>, Eigen::Isometry3d>();
   const double int_kib_saved = 1000.0 * std::get<1>(int_comp_tuple) / 1024.0;
   const double str_kib_saved = 1000.0 * std::get<1>(str_comp_tuple) / 1024.0;
-  fmt::print("Memory usage summary:\n");
-  fmt::print("  ttfrm::Tfrm<int> {} Eigen::Isometry3d\n", std::get<0>(int_comp_tuple));
+  std::cout << "Memory usage summary:\n";
+  std::cout << "  ttfrm::Tfrm<int> " << std::get<0>(int_comp_tuple) << " Eigen::Isometry3d\n";
   if (int_kib_saved != 0.0) {
-    fmt::print("    (You save {} B per transform, {} KiB for every 1000 transforms)\n",
-               std::get<1>(int_comp_tuple), int_kib_saved);
+    std::cout << "    (You save " << std::get<1>(int_comp_tuple) << " B per transform, "
+              << int_kib_saved << " KiB for every 1000 transforms)\n";
   }
-  fmt::print("  ttfrm::Tfrm<std::string> {} Eigen::Isometry3d\n", std::get<0>(str_comp_tuple));
+  std::cout << "  ttfrm::Tfrm<std::string> " << std::get<0>(str_comp_tuple)
+            << " Eigen::Isometry3d\n";
   if (str_kib_saved != 0.0) {
-    fmt::print("    (You save {} B per transform, {} KiB for every 1000 transforms)\n",
-               std::get<1>(str_comp_tuple), str_kib_saved);
+    std::cout << "    (You save " << std::get<1>(str_comp_tuple) << " B per transform, "
+              << str_kib_saved << " KiB for every 1000 transforms)\n";
   }
-  fmt::print("\n\n");
+  std::cout << "\n\n" << std::flush;
 }
 
 struct BenchFunc {
@@ -291,64 +295,68 @@ struct EigenInterpolateBench : public BenchFunc {
 
 std::string StringifyTimeSummary(const BenchResult& bench_res)
 {
-  return fmt::format("Took {:0.3f} s ({} ns average)", bench_res.total_time_s,
-                     bench_res.average_time_ns);
+  std::stringstream ss;
+  ss << "Took " << std::fixed << std::setprecision(3) << bench_res.total_time_s << " s ("
+     << std::defaultfloat << bench_res.average_time_ns << " ns average)";
+  return ss.str();
 }
 
 std::string StringifyHash(const BenchResult& bench_res)
 {
-  return fmt::format("{:0>20}", bench_res.result_hash);
+  std::stringstream ss;
+  ss << std::hex << std::setw(16) << std::setfill('0') << bench_res.result_hash;
+  return ss.str();
 }
 
 void CpuUsageInfo()
 {
-  fmt::print("////////////////////\n");
-  fmt::print("// CPU USAGE INFO //\n");
-  fmt::print("////////////////////\n\n");
+  std::cout << "////////////////////\n";
+  std::cout << "// CPU USAGE INFO //\n";
+  std::cout << "////////////////////\n\n";
   const ttfrm::Quat rot = QuatFromEulerXYZ(RadFromDeg({45.0, 90.0, 20.0}));
   const ttfrm::Vec3 trans = {2.0, 1.0, 0.0};
   const ttfrm::Tfrm<int> tfrm(0, 0, rot, trans);
   const Eigen::Isometry3d iso = tfrm.AsIsometry();
-  fmt::print("Running ttfrm::Tfrm<int> benchmarks over 100M iterations... ");
+  std::cout << "Running ttfrm::Tfrm<int> benchmarks over 100M iterations... ";
   std::cout << std::flush;
   const auto tfrm_apply_res = Benchmark(1000, 100000000, TtfrmApplyBench(tfrm));
   const auto tfrm_compose_res = Benchmark(1000, 100000000, TtfrmComposeBench(tfrm));
   const auto tfrm_inverse_res = Benchmark(1000, 100000000, TtfrmInverseBench(tfrm));
   const auto tfrm_interp_res = Benchmark(1000, 100000000, TtfrmInterpolateBench(tfrm));
-  fmt::print("Done!\n");
-  fmt::print("Running Eigen::Isometry3d benchmarks over 100M iterations... ");
+  std::cout << "Done!\n";
+  std::cout << "Running Eigen::Isometry3d benchmarks over 100M iterations... ";
   std::cout << std::flush;
   const auto iso_apply_res = Benchmark(1000, 100000000, EigenApplyBench(iso));
   const auto iso_compose_res = Benchmark(1000, 100000000, EigenComposeBench(iso));
   const auto iso_inverse_res = Benchmark(1000, 100000000, EigenInverseBench(iso));
   const auto iso_interp_res = Benchmark(1000, 10000000, EigenInterpolateBench(iso));
-  fmt::print("Done!\n\n");
-  fmt::print("CPU usage summary:\n");
-  fmt::print("  ttfrm::Tfrm<int> benchmarks:\n");
-  fmt::print("    Apply:   {}\n", StringifyTimeSummary(tfrm_apply_res));
-  fmt::print("    Compose: {}\n", StringifyTimeSummary(tfrm_compose_res));
-  fmt::print("    Inverse: {}\n", StringifyTimeSummary(tfrm_inverse_res));
-  fmt::print("    Interp:  {}\n", StringifyTimeSummary(tfrm_interp_res));
-  fmt::print("  Eigen::Isometry3d benchmarks:\n");
-  fmt::print("    Apply:   {}\n", StringifyTimeSummary(iso_apply_res));
-  fmt::print("    Compose: {}\n", StringifyTimeSummary(iso_compose_res));
-  fmt::print("    Inverse: {}\n", StringifyTimeSummary(iso_inverse_res));
-  fmt::print("    Interp:  {} [*]\n", StringifyTimeSummary(iso_interp_res));
-  fmt::print("\n");
-  fmt::print("[*]: 10M iterations only. Includes required quaternion conversions for slerp.\n");
-  fmt::print("\n");
-  fmt::print("Result hashes:\n");
-  fmt::print("  ttfrm::Tfrm<int> benchmarks:\n");
-  fmt::print("    Apply:   {}\n", StringifyHash(tfrm_apply_res));
-  fmt::print("    Compose: {}\n", StringifyHash(tfrm_compose_res));
-  fmt::print("    Inverse: {}\n", StringifyHash(tfrm_inverse_res));
-  fmt::print("    Interp:  {}\n", StringifyHash(tfrm_interp_res));
-  fmt::print("  Eigen::Isometry3d benchmarks:\n");
-  fmt::print("    Apply:   {}\n", StringifyHash(iso_apply_res));
-  fmt::print("    Compose: {}\n", StringifyHash(iso_compose_res));
-  fmt::print("    Inverse: {}\n", StringifyHash(iso_inverse_res));
-  fmt::print("    Interp:  {}\n", StringifyHash(iso_interp_res));
-  fmt::print("\n\n");
+  std::cout << "Done!\n\n";
+  std::cout << "CPU usage summary:\n";
+  std::cout << "  ttfrm::Tfrm<int> benchmarks:\n";
+  std::cout << "    Apply:   " << StringifyTimeSummary(tfrm_apply_res) << "\n";
+  std::cout << "    Compose: " << StringifyTimeSummary(tfrm_compose_res) << "\n";
+  std::cout << "    Inverse: " << StringifyTimeSummary(tfrm_inverse_res) << "\n";
+  std::cout << "    Interp:  " << StringifyTimeSummary(tfrm_interp_res) << "\n";
+  std::cout << "  Eigen::Isometry3d benchmarks:\n";
+  std::cout << "    Apply:   " << StringifyTimeSummary(iso_apply_res) << "\n";
+  std::cout << "    Compose: " << StringifyTimeSummary(iso_compose_res) << "\n";
+  std::cout << "    Inverse: " << StringifyTimeSummary(iso_inverse_res) << "\n";
+  std::cout << "    Interp:  " << StringifyTimeSummary(iso_interp_res) << " [*]\n";
+  std::cout << "\n";
+  std::cout << "[*]: 10M iterations only. Includes required quaternion conversions for slerp.\n";
+  std::cout << "\n";
+  std::cout << "Result hashes:\n";
+  std::cout << "  ttfrm::Tfrm<int> benchmarks:\n";
+  std::cout << "    Apply:   " << StringifyHash(tfrm_apply_res) << "\n";
+  std::cout << "    Compose: " << StringifyHash(tfrm_compose_res) << "\n";
+  std::cout << "    Inverse: " << StringifyHash(tfrm_inverse_res) << "\n";
+  std::cout << "    Interp:  " << StringifyHash(tfrm_interp_res) << "\n";
+  std::cout << "  Eigen::Isometry3d benchmarks:\n";
+  std::cout << "    Apply:   " << StringifyHash(iso_apply_res) << "\n";
+  std::cout << "    Compose: " << StringifyHash(iso_compose_res) << "\n";
+  std::cout << "    Inverse: " << StringifyHash(iso_inverse_res) << "\n";
+  std::cout << "    Interp:  " << StringifyHash(iso_interp_res) << "\n";
+  std::cout << "\n\n" << std::flush;
 }
 
 int main(int argc, char** argv)

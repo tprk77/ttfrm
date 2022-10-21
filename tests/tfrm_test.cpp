@@ -260,16 +260,17 @@ TEST(Tfrm, AsIsometry)
 TEST(Tfrm, StringifyTfrm)
 {
   const MyTfrm tfrm = MyTfrm::Identity("test", "world");
-  const std::string tfrm_str = ttfrm::Stringify(tfrm);
+  const std::string tfrm_str = ttfrm::to_string(tfrm);
   const std::string expected_str =
-      "([test] <- [world], ROT: (W: 1, X: 0, Y: 0, Z: 0), TRANS: (X: 0, Y: 0, Z: 0))";
+      "([test] <- [world], ROT: (W: 1.000000, X: 0.000000, Y: 0.000000, Z: 0.000000), TRANS: (X: "
+      "0.000000, Y: 0.000000, Z: 0.000000))";
   EXPECT_EQ(tfrm_str, expected_str);
 }
 
 TEST(Tfrm, StringifyFramePair)
 {
   const MyFramePair frame_pair{"test", "world"};
-  const std::string tfrm_str = ttfrm::Stringify(frame_pair);
+  const std::string tfrm_str = ttfrm::to_string(frame_pair);
   const std::string expected_str = "([test] <- [world])";
   EXPECT_EQ(tfrm_str, expected_str);
 }

@@ -24,10 +24,19 @@
 #define TTFRM_TFRM_HPP
 
 #include <exception>
+#include <string>
 #include <tuple>
 
-#include <fmt/format.h>
 #include <Eigen/Geometry>
+
+namespace ttfrm {
+namespace detail {
+
+template <typename... T>
+std::string StringConcat(const T&... val);
+
+}  // namespace detail
+}  // namespace ttfrm
 
 namespace ttfrm {
 
@@ -46,10 +55,10 @@ struct FramePair {
 };
 
 template <typename FrameId>
-std::string Stringify(const Tfrm<FrameId>& tfrm);
+std::string to_string(const Tfrm<FrameId>& tfrm);
 
 template <typename FrameId>
-std::string Stringify(const FramePair<FrameId>& frame_pair);
+std::string to_string(const FramePair<FrameId>& frame_pair);
 
 template <typename FrameId_>
 class Tfrm {
@@ -103,8 +112,8 @@ class Tfrm {
   Quat rot_;
   Vec3 trans_;
 
-  friend std::string Stringify<FrameId>(const Tfrm<FrameId>& tfrm);
-  friend std::string Stringify<FrameId>(const FramePair<FrameId>& frame_pair);
+  friend std::string to_string<FrameId>(const Tfrm<FrameId>& tfrm);
+  friend std::string to_string<FrameId>(const FramePair<FrameId>& frame_pair);
 };
 
 class TfrmComposeException : public std::runtime_error {
@@ -322,8 +331,9 @@ Eigen::Isometry3d Tfrm<FrameId>::AsIsometry() const
 template <typename FrameId>
 TfrmComposeException::TfrmComposeException(const Tfrm<FrameId>& tfrm,
                                            const Tfrm<FrameId>& other_tfrm)
-    : std::runtime_error(fmt::format("Cannot compose transforms {} and {}",
-                                     Stringify(tfrm.Frames()), Stringify(other_tfrm.Frames())))
+    : std::runtime_error(detail::StringConcat("Cannot compose transforms ", tfrm.Frames(), " and ",
+                                              other_tfrm.Frames()))
+
 {
   // Do nothing
 }
@@ -331,27 +341,71 @@ TfrmComposeException::TfrmComposeException(const Tfrm<FrameId>& tfrm,
 template <typename FrameId>
 TfrmInterpolateException::TfrmInterpolateException(const Tfrm<FrameId>& tfrm,
                                                    const Tfrm<FrameId>& other_tfrm)
-    : std::runtime_error(fmt::format("Cannot interpolate transforms {} and {}",
-                                     Stringify(tfrm.Frames()), Stringify(other_tfrm.Frames())))
+    : std::runtime_error(detail::StringConcat("Cannot interpolate transforms ", tfrm.Frames(),
+                                              " and ", other_tfrm.Frames()))
 {
   // Do nothing
 }
 
 template <typename FrameId>
-std::string Stringify(const Tfrm<FrameId>& tfrm)
+std::string to_string(const Tfrm<FrameId>& tfrm)
 {
-  return fmt::format(
-      "([{}] <- [{}], ROT: (W: {}, X: {}, Y: {}, Z: {}), TRANS: (X: {}, Y: {}, Z: {}))",
-      tfrm.to_frame_, tfrm.from_frame_, tfrm.rot_.w(), tfrm.rot_.x(), tfrm.rot_.y(), tfrm.rot_.z(),
-      tfrm.trans_.x(), tfrm.trans_.y(), tfrm.trans_.z());
+  return detail::StringConcat(
+      "([", tfrm.to_frame_, "] <- [", tfrm.from_frame_, "], ROT: (W: ", tfrm.rot_.w(),
+      ", X: ", tfrm.rot_.x(), ", Y: ", tfrm.rot_.y(), ", Z: ", tfrm.rot_.z(),
+      "), TRANS: (X: ", tfrm.trans_.x(), ", Y: ", tfrm.trans_.y(), ", Z: ", tfrm.trans_.z(), "))");
 }
 
 template <typename FrameId>
-std::string Stringify(const FramePair<FrameId>& frame_pair)
+std::string to_string(const FramePair<FrameId>& frame_pair)
 {
-  return fmt::format("([{}] <- [{}])", frame_pair.to_frame, frame_pair.from_frame);
+  return detail::StringConcat("([", frame_pair.to_frame, "] <- [", frame_pair.from_frame, "])");
 }
 
+}  // namespace ttfrm
+
+namespace ttfrm {
+namespace detail {
+
+template <int N>
+std::string to_string(const char (&cstr)[N])
+{
+  return std::string(cstr);
+}
+
+namespace stringshim {
+
+// WARNING Only ever use this from the string concat function to avoid
+// unneccesary string copies. Can result dangling references otherwise.
+const std::string& to_string(const std::string& str)
+{
+  return str;
+}
+
+}  // namespace stringshim
+
+template <typename... String>
+std::string StringConcatStrings(const String&... str)
+{
+  size_t total_len = 0;
+  (void) std::initializer_list<int>{(total_len += str.length(), 0)...};
+  std::string concat_str(total_len, ' ');
+  auto concat_iter = concat_str.begin();
+  (void) std::initializer_list<int>{
+      (concat_iter = std::copy(str.begin(), str.end(), concat_iter), 0)...};
+  return concat_str;
+}
+
+template <typename... T>
+std::string StringConcat(const T&... val)
+{
+  using detail::to_string;
+  using detail::stringshim::to_string;
+  using std::to_string;
+  return StringConcatStrings(to_string(val)...);
+}
+
+}  // namespace detail
 }  // namespace ttfrm
 
 #endif  // TTFRM_TFRM_HPP

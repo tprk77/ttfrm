@@ -36,7 +36,7 @@ template <typename FrameId>
 class TfrmTree;
 
 template <typename FrameId>
-std::string Stringify(const TfrmTree<FrameId>& tfrm_tree);
+std::string to_string(const TfrmTree<FrameId>& tfrm_tree);
 
 template <typename FrameId_>
 class TfrmTree {
@@ -74,7 +74,7 @@ class TfrmTree {
   std::unordered_map<FrameId, Tfrm<FrameId>> frame_from_root_tfrms_;
   std::unordered_map<FrameId, Tfrm<FrameId>> root_from_frame_tfrms_;
 
-  friend std::string Stringify<FrameId>(const TfrmTree<FrameId>& tfrm_tree);
+  friend std::string to_string<FrameId>(const TfrmTree<FrameId>& tfrm_tree);
 };
 
 class TfrmTreeInsertUnrootedException : public std::runtime_error {
@@ -320,15 +320,16 @@ bool TfrmTree<FrameId>::Get_(const FramePair<FrameId>& frame_pair, Tfrm<FrameId>
 }
 
 template <typename FrameId>
-std::string Stringify(const TfrmTree<FrameId>& tfrm_tree)
+std::string to_string(const TfrmTree<FrameId>& tfrm_tree)
 {
-  return fmt::format("(ROOT: [{}])", tfrm_tree.root_frame_);
+  // TODO Should probably print other frames in the tree as well
+  return detail::StringConcat("(ROOT: [", tfrm_tree.root_frame_, "])");
 }
 
 template <typename FrameId>
 TfrmTreeInsertUnrootedException::TfrmTreeInsertUnrootedException(
     const FramePair<FrameId>& frame_pair)
-    : std::runtime_error(fmt::format("Unrooted transform {}", Stringify(frame_pair)))
+    : std::runtime_error(detail::StringConcat("Unrooted transform ", frame_pair))
 {
   // Do nothing
 }
@@ -336,14 +337,14 @@ TfrmTreeInsertUnrootedException::TfrmTreeInsertUnrootedException(
 template <typename FrameId>
 TfrmTreeInsertDuplicateException::TfrmTreeInsertDuplicateException(
     const FramePair<FrameId>& frame_pair)
-    : std::runtime_error(fmt::format("Duplicate transform {}", Stringify(frame_pair)))
+    : std::runtime_error(detail::StringConcat("Duplicate transform ", frame_pair))
 {
   // Do nothing
 }
 
 template <typename FrameId>
 TfrmTreeInsertCycleException::TfrmTreeInsertCycleException(const FramePair<FrameId>& frame_pair)
-    : std::runtime_error(fmt::format("Inserting cycle with transform {}", Stringify(frame_pair)))
+    : std::runtime_error(detail::StringConcat("Inserting cycle with transform ", frame_pair))
 {
   // Do nothing
 }
@@ -351,7 +352,7 @@ TfrmTreeInsertCycleException::TfrmTreeInsertCycleException(const FramePair<Frame
 template <typename FrameId>
 TfrmTreeUpdateNonexistentException::TfrmTreeUpdateNonexistentException(
     const FramePair<FrameId>& frame_pair)
-    : std::runtime_error(fmt::format("Nonexistent transform {}", Stringify(frame_pair)))
+    : std::runtime_error(detail::StringConcat("Nonexistent transform ", frame_pair))
 {
   // Do nothing
 }
@@ -359,7 +360,7 @@ TfrmTreeUpdateNonexistentException::TfrmTreeUpdateNonexistentException(
 template <typename FrameId>
 TfrmTreeGetNonexistentException::TfrmTreeGetNonexistentException(
     const FramePair<FrameId>& frame_pair)
-    : std::runtime_error(fmt::format("Nonexistent transform {}", Stringify(frame_pair)))
+    : std::runtime_error(detail::StringConcat("Nonexistent transform ", frame_pair))
 {
   // Do nothing
 }
