@@ -15,11 +15,10 @@ project('ttfrm', 'cpp',
 ######################
 
 eigen_dep = dependency('eigen3', fallback : ['eigen3', 'eigen_dep'])
-fmt_dep = dependency('fmt', fallback : ['fmt', 'fmt_dep'])
 ttfrm_dep = declare_dependency(
   version : meson.project_version(),
   include_directories : include_directories('.'),
-  dependencies : [eigen_dep, fmt_dep])
+  dependencies : [eigen_dep])
 
 #########################
 # Tests, Utilities, etc #

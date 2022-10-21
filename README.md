@@ -57,13 +57,13 @@ $ sudo apt-get install python3-pip ninja-build
 $ sudo pip3 install meson
 ```
 
-You may optionally install dependencies for Eigen3, fmt, GTest, and SDL2.
-(GTest and SDL2 are only used for tests and demos.) If you don't install them,
-Meson should automatically download the dependencies for you.
+You may optionally install dependencies for Eigen3, GTest, and SDL2. (GTest and
+SDL2 are only used for tests and demos.) If you don't install them, Meson
+should automatically download the dependencies for you.
 
 ```text
 # This is optional, Meson can download dependencies
-$ sudo apt-get install libeigen3-dev libfmt-dev libgtest-dev libsdl2-dev
+$ sudo apt-get install libeigen3-dev libgtest-dev libsdl2-dev
 ```
 
 Once the dependencies are in place, we can run the build:
