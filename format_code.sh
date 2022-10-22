@@ -19,6 +19,7 @@ if [ -n "${lockfiles}" ]; then
     exit 1
 fi
 
-(cd "${SCRIPT_DIR}" && eval "find ${DIRS} -regex '${CPP_FILENAME_REGEX}'" | xargs clang-format -i)
+(cd "${SCRIPT_DIR}" && eval "find ${DIRS} -regex '${CPP_FILENAME_REGEX}'" \
+    | xargs clang-format --style=file --fallback-style=none -i)
 
 exit 0
