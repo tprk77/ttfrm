@@ -14,20 +14,20 @@ you can, but Ttfrm will helpfully crash your program. At least I think it's
 helpful. Maybe it's best to see an example:
 
 ```cpp
-const Quat rot = {0.7071, 0.0, -0.7071, 0.0};
-const Vec3 trans = {1.0, 1.0, 1.0};
+const quat rot = {0.7071, 0.0, -0.7071, 0.0};
+const vec3 trans = {1.0, 1.0, 1.0};
 
 // Transform to X from World
-const Tfrm<std::string> x_from_world("x", "world", rot, trans);
+const tfrm<std::string> x_from_world("x", "world", rot, trans);
 
 // Transform to Y from X
-const Tfrm<std::string> y_from_x("y", "x", rot, trans);
+const tfrm<std::string> y_from_x("y", "x", rot, trans);
 
 // Transform to Z from Y
-const Tfrm<std::string> z_from_y("z", "y", rot, trans);
+const tfrm<std::string> z_from_y("z", "y", rot, trans);
 
 // Compose transforms to get the transform to Z form World (?)
-const Tfrm<std::string> z_from_world = z_from_y * x_from_world;
+const tfrm<std::string> z_from_world = z_from_y * x_from_world;
 
 // ...Oops, forgot the transform to Y from X!
 ```
@@ -35,7 +35,7 @@ const Tfrm<std::string> z_from_world = z_from_y * x_from_world;
 The above code will crash with the following exception:
 
 ```text
-terminate called after throwing an instance of 'ttfrm::TfrmComposeException'
+terminate called after throwing an instance of 'ttfrm::compose_exception'
   what():  Cannot compose transforms ([z] <- [y]) and ([x] <- [world])
 Aborted (core dumped)
 ```
@@ -44,7 +44,7 @@ The programmer can then go and fix the error!
 
 ```cpp
 // We found the bug and everything is good this time!
-const Tfrm<std::string> z_from_world = z_from_y * y_from_x * x_from_world;
+const tfrm<std::string> z_from_world = z_from_y * y_from_x * x_from_world;
 ```
 
 ## Building ##
@@ -147,7 +147,7 @@ const auto& pose_a_in_world = world_from_a;
 If you only have the inverse, you could use that too:
 
 ```cpp
-const auto pose_a_in_world = a_from_world.Inverse();
+const auto pose_a_in_world = a_from_world.inverse();
 ```
 
 ## Why Quaternions? ##
@@ -164,11 +164,11 @@ example result:
 // CPU USAGE INFO //
 ////////////////////
 
-Running ttfrm::Tfrm<int> benchmarks over 100M iterations... Done!
+Running ttfrm::tfrm<int> benchmarks over 100M iterations... Done!
 Running Eigen::Isometry3d benchmarks over 100M iterations... Done!
 
 CPU usage summary:
-  ttfrm::Tfrm<int> benchmarks:
+  ttfrm::tfrm<int> benchmarks:
     Apply:   Took 0.816 s (8 ns average)
     Compose: Took 2.681 s (26 ns average)
     Inverse: Took 3.271 s (32 ns average)
