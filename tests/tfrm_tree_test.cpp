@@ -4,148 +4,148 @@
 
 #include <ttfrm/tfrm_tree.hpp>
 
-using MyTfrm = ttfrm::Tfrm<std::string>;
-using MyTfrmTree = ttfrm::TfrmTree<std::string>;
+using my_tfrm = ttfrm::tfrm<std::string>;
+using my_tfrm_tree = ttfrm::tfrm_tree<std::string>;
 
-TEST(TfrmTree, Construct)
+TEST(tfrm_tree, construct)
 {
-  const MyTfrmTree tfrm_tree("world");
-  EXPECT_EQ(tfrm_tree.RootFrame(), "world");
+  const my_tfrm_tree tf_tree("world");
+  EXPECT_EQ(tf_tree.root_frame(), "world");
 }
 
-TEST(TfrmTree, ConstructCopy)
+TEST(tfrm_tree, construct_copy)
 {
-  const MyTfrmTree tfrm_tree("world");
-  const MyTfrmTree tfrm_tree2 = tfrm_tree;
-  EXPECT_EQ(tfrm_tree2.RootFrame(), "world");
+  const my_tfrm_tree tf_tree("world");
+  const my_tfrm_tree tf_tree2 = tf_tree;
+  EXPECT_EQ(tf_tree2.root_frame(), "world");
 }
 
-TEST(TfrmTree, ConstructMove)
+TEST(tfrm_tree, construct_move)
 {
-  const MyTfrmTree tfrm_tree("world");
-  const MyTfrmTree tfrm_tree2 = std::move(tfrm_tree);
-  EXPECT_EQ(tfrm_tree2.RootFrame(), "world");
+  const my_tfrm_tree tf_tree("world");
+  const my_tfrm_tree tf_tree2 = std::move(tf_tree);
+  EXPECT_EQ(tf_tree2.root_frame(), "world");
 }
 
-TEST(TfrmTree, Insert)
+TEST(tfrm_tree, insert)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
 }
 
-TEST(TfrmTree, InsertChain)
+TEST(tfrm_tree, insert_chain)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm x_from_world = MyTfrm::Identity("x", "world");
-  const MyTfrm y_from_x = MyTfrm::Identity("y", "x");
-  const MyTfrm z_from_y = MyTfrm::Identity("z", "y");
-  const MyTfrm test_from_z = MyTfrm::Identity("test", "z");
-  tfrm_tree.Insert(x_from_world);
-  tfrm_tree.Insert(y_from_x);
-  tfrm_tree.Insert(z_from_y);
-  tfrm_tree.Insert(test_from_z);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm x_from_world = my_tfrm::identity("x", "world");
+  const my_tfrm y_from_x = my_tfrm::identity("y", "x");
+  const my_tfrm z_from_y = my_tfrm::identity("z", "y");
+  const my_tfrm test_from_z = my_tfrm::identity("test", "z");
+  tf_tree.insert(x_from_world);
+  tf_tree.insert(y_from_x);
+  tf_tree.insert(z_from_y);
+  tf_tree.insert(test_from_z);
 }
 
-TEST(TfrmTree, InsertUnrooted)
+TEST(tfrm_tree, insert_unrooted)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_x = MyTfrm::Identity("test", "x");
-  EXPECT_THROW(tfrm_tree.Insert(test_from_x), ttfrm::TfrmTreeInsertUnrootedException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_x = my_tfrm::identity("test", "x");
+  EXPECT_THROW(tf_tree.insert(test_from_x), ttfrm::insert_unrooted_exception);
 }
 
-TEST(TfrmTree, InsertDuplicate)
+TEST(tfrm_tree, insert_duplicate)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  const MyTfrm test_from_world2 = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  EXPECT_THROW(tfrm_tree.Insert(test_from_world2), ttfrm::TfrmTreeInsertDuplicateException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  const my_tfrm test_from_world2 = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  EXPECT_THROW(tf_tree.insert(test_from_world2), ttfrm::insert_duplicate_exception);
 }
 
-TEST(TfrmTree, InsertCycle)
+TEST(tfrm_tree, insert_cycle)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm x_from_world = MyTfrm::Identity("x", "world");
-  const MyTfrm test_from_x = MyTfrm::Identity("test", "x");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(x_from_world);
-  tfrm_tree.Insert(test_from_x);
-  EXPECT_THROW(tfrm_tree.Insert(test_from_world), ttfrm::TfrmTreeInsertCycleException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm x_from_world = my_tfrm::identity("x", "world");
+  const my_tfrm test_from_x = my_tfrm::identity("test", "x");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(x_from_world);
+  tf_tree.insert(test_from_x);
+  EXPECT_THROW(tf_tree.insert(test_from_world), ttfrm::insert_cycle_exception);
 }
 
-TEST(TfrmTree, InsertCycleToSelf)
+TEST(tfrm_tree, insert_cycle_to_self)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm world_from_world = MyTfrm::Identity("world", "world");
-  EXPECT_THROW(tfrm_tree.Insert(world_from_world), ttfrm::TfrmTreeInsertCycleException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm world_from_world = my_tfrm::identity("world", "world");
+  EXPECT_THROW(tf_tree.insert(world_from_world), ttfrm::insert_cycle_exception);
 }
 
-TEST(TfrmTree, Update)
+TEST(tfrm_tree, update)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  tfrm_tree.Update(test_from_world);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  tf_tree.update(test_from_world);
 }
 
-TEST(TfrmTree, UpdateChain)
+TEST(tfrm_tree, update_chain)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm x_from_world = MyTfrm::Identity("x", "world");
-  MyTfrm y_from_x = MyTfrm::Identity("y", "x");
-  const MyTfrm z_from_y = MyTfrm::Identity("z", "y");
-  const MyTfrm test_from_z = MyTfrm::Identity("test", "z");
-  tfrm_tree.Insert(x_from_world);
-  tfrm_tree.Insert(y_from_x);
-  tfrm_tree.Insert(z_from_y);
-  tfrm_tree.Insert(test_from_z);
-  y_from_x = MyTfrm::FromTranslation("y", "x", {2.0, 1.0, 0.0});
-  tfrm_tree.Update(y_from_x);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm x_from_world = my_tfrm::identity("x", "world");
+  my_tfrm y_from_x = my_tfrm::identity("y", "x");
+  const my_tfrm z_from_y = my_tfrm::identity("z", "y");
+  const my_tfrm test_from_z = my_tfrm::identity("test", "z");
+  tf_tree.insert(x_from_world);
+  tf_tree.insert(y_from_x);
+  tf_tree.insert(z_from_y);
+  tf_tree.insert(test_from_z);
+  y_from_x = my_tfrm::from_translation("y", "x", {2.0, 1.0, 0.0});
+  tf_tree.update(y_from_x);
 }
 
-TEST(TfrmTree, UpdateNonexistentToFrame)
+TEST(tfrm_tree, update_nonexistent_to_frame)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  const MyTfrm junk1_from_world = MyTfrm::Identity("junk1", "world");
-  EXPECT_THROW(tfrm_tree.Update(junk1_from_world), ttfrm::TfrmTreeUpdateNonexistentException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  const my_tfrm junk1_from_world = my_tfrm::identity("junk1", "world");
+  EXPECT_THROW(tf_tree.update(junk1_from_world), ttfrm::update_nonexistent_exception);
 }
 
-TEST(TfrmTree, UpdateNonexistentFromFrame)
+TEST(tfrm_tree, update_nonexistent_from_frame)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  const MyTfrm test_from_junk2 = MyTfrm::Identity("test", "junk2");
-  EXPECT_THROW(tfrm_tree.Update(test_from_junk2), ttfrm::TfrmTreeUpdateNonexistentException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  const my_tfrm test_from_junk2 = my_tfrm::identity("test", "junk2");
+  EXPECT_THROW(tf_tree.update(test_from_junk2), ttfrm::update_nonexistent_exception);
 }
 
-TEST(TfrmTree, Get)
+TEST(tfrm_tree, get)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  const MyTfrm test_from_world2 = tfrm_tree.Get("test", "world");
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  const my_tfrm test_from_world2 = tf_tree.get("test", "world");
 }
 
-TEST(TfrmTree, GetNonexistentToFrame)
+TEST(tfrm_tree, get_nonexistent_to_frame)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  EXPECT_THROW(const MyTfrm test_from_world2 = tfrm_tree.Get("junk1", "world"),
-               ttfrm::TfrmTreeGetNonexistentException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  EXPECT_THROW(const my_tfrm test_from_world2 = tf_tree.get("junk1", "world"),
+               ttfrm::get_nonexistent_exception);
 }
 
-TEST(TfrmTree, GetNonexistentFromFrame)
+TEST(tfrm_tree, get_nonexistent_from_frame)
 {
-  MyTfrmTree tfrm_tree("world");
-  const MyTfrm test_from_world = MyTfrm::Identity("test", "world");
-  tfrm_tree.Insert(test_from_world);
-  EXPECT_THROW(const MyTfrm test_from_world2 = tfrm_tree.Get("test", "junk2"),
-               ttfrm::TfrmTreeGetNonexistentException);
+  my_tfrm_tree tf_tree("world");
+  const my_tfrm test_from_world = my_tfrm::identity("test", "world");
+  tf_tree.insert(test_from_world);
+  EXPECT_THROW(const my_tfrm test_from_world2 = tf_tree.get("test", "junk2"),
+               ttfrm::get_nonexistent_exception);
 }
 
 int main(int argc, char** argv)

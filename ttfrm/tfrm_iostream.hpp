@@ -29,17 +29,17 @@
 
 namespace ttfrm {
 
-template <typename FrameId>
-std::ostream& operator<<(std::ostream& ostream, const Tfrm<FrameID>& tfrm)
+template <typename FrameT>
+std::ostream& operator<<(std::ostream& ostream, const tfrm<FrameT>& tf)
 {
-  ostream << to_string(tfrm);
+  ostream << to_string(tf);
   return ostream;
 }
 
-template <typename FrameId>
-std::ostream& operator<<(std::ostream& ostream, const FramePair<FrameID>& frame_pair)
+template <typename FrameT>
+std::ostream& operator<<(std::ostream& ostream, const frame_pair<FrameT>& fp)
 {
-  ostream << to_string(frame_pair);
+  ostream << to_string(fp);
   return ostream;
 }
 
