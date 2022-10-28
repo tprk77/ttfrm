@@ -18,7 +18,7 @@ const quat rot = {0.7071, 0.0, -0.7071, 0.0};
 const vec3 trans = {1.0, 1.0, 1.0};
 
 // Transform to X from World
-const tfrm<std::string> x_from_world(to_s("x") << from("world"), rot, trans);
+const tfrm<std::string> x_from_world(to_s("x") << from_s("world"), rot, trans);
 
 // Transform to Y from X
 const tfrm<std::string> y_from_x(to_s("y") << from_s("x"), rot, trans);
