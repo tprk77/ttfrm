@@ -43,7 +43,7 @@ class tfrm_tree {
  public:
   using frame_type = FrameT;
 
-  explicit tfrm_tree(const FrameT& root_frame);
+  explicit tfrm_tree(source_frame<FrameT> root_frame);
   tfrm_tree(const tfrm_tree& other_tf_tree);
   tfrm_tree(tfrm_tree&& other_tf_tree);
 
@@ -56,14 +56,11 @@ class tfrm_tree {
   void update(const tfrm<FrameT>& tf);
 
   bool has(const frame_pair<FrameT>& fp) const;
-  bool has(const FrameT& to_frame, const FrameT& from_frame) const;
 
   tfrm<FrameT> get(const frame_pair<FrameT>& fp) const;
-  tfrm<FrameT> get(const FrameT& to_frame, const FrameT& from_frame) const;
 
   // TODO This should really be using std::optional
   std::shared_ptr<tfrm<FrameT>> get_opt(const frame_pair<FrameT>& fp) const;
-  std::shared_ptr<tfrm<FrameT>> get_opt(const FrameT& to_frame, const FrameT& from_frame) const;
 
  private:
   void update_root_transforms_from_(const FrameT& start_from_frame);
@@ -118,11 +115,15 @@ class get_nonexistent_exception : public std::runtime_error {
 };
 
 template <typename FrameT>
-tfrm_tree<FrameT>::tfrm_tree(const FrameT& root_frame)
-    : root_frame_(root_frame),
+tfrm_tree<FrameT>::tfrm_tree(source_frame<FrameT> root_frame)
+    : root_frame_(std::move(root_frame.value)),
       tf_tree_{{root_frame_, {}}},
-      frame_from_root_tfs_{{root_frame_, tfrm<FrameT>::identity(root_frame_, root_frame_)}},
-      root_from_frame_tfs_{{root_frame_, tfrm<FrameT>::identity(root_frame_, root_frame_)}}
+      frame_from_root_tfs_{
+          {root_frame_,  //
+           tfrm<FrameT>::identity(frame_pair<FrameT>(to(root_frame_), from(root_frame_)))}},
+      root_from_frame_tfs_{
+          {root_frame_,  //
+           tfrm<FrameT>::identity(frame_pair<FrameT>(to(root_frame_), from(root_frame_)))}}
 {
   // Do nothing
 }
@@ -262,15 +263,9 @@ bool tfrm_tree<FrameT>::has(const frame_pair<FrameT>& fp) const
 }
 
 template <typename FrameT>
-bool tfrm_tree<FrameT>::has(const FrameT& to_frame, const FrameT& from_frame) const
-{
-  return has({to_frame, from_frame});
-}
-
-template <typename FrameT>
 tfrm<FrameT> tfrm_tree<FrameT>::get(const frame_pair<FrameT>& fp) const
 {
-  tfrm<FrameT> tf = tfrm<FrameT>::identity("INVALID", "INVALID");
+  tfrm<FrameT> tf = tfrm<FrameT>::identity(frame_pair<FrameT>(to(FrameT{}), from(FrameT{})));
   if (!get_(fp, &tf)) {
     throw get_nonexistent_exception(fp);
   }
@@ -278,26 +273,13 @@ tfrm<FrameT> tfrm_tree<FrameT>::get(const frame_pair<FrameT>& fp) const
 }
 
 template <typename FrameT>
-tfrm<FrameT> tfrm_tree<FrameT>::get(const FrameT& to_frame, const FrameT& from_frame) const
-{
-  return get({to_frame, from_frame});
-}
-
-template <typename FrameT>
 std::shared_ptr<tfrm<FrameT>> tfrm_tree<FrameT>::get_opt(const frame_pair<FrameT>& fp) const
 {
-  tfrm<FrameT> tf;
+  tfrm<FrameT> tf = tfrm<FrameT>::identity(frame_pair<FrameT>(to(FrameT{}), from(FrameT{})));
   if (!get_(fp, &tf)) {
     return nullptr;
   }
   return std::make_shared(tf);
-}
-
-template <typename FrameT>
-std::shared_ptr<tfrm<FrameT>> tfrm_tree<FrameT>::get_opt(const FrameT& to_frame,
-                                                         const FrameT& from_frame) const
-{
-  return get_opt({to_frame, from_frame});
 }
 
 template <typename FrameT>
