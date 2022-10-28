@@ -29,6 +29,8 @@
 
 #include <Eigen/Geometry>
 
+////////////////////////// DECLS //////////////////////////
+
 namespace ttfrm {
 namespace detail {
 
@@ -46,13 +48,46 @@ using vec3 = Eigen::Vector3d;
 template <typename FrameT>
 class tfrm;
 
+// Basic wrapper used for construction of a frame pair
+template <typename FrameT>
+struct target_frame {
+  explicit target_frame(FrameT to_frame);
+  FrameT value;
+};
+
+// Basic wrapper used for construction of a frame pair
+template <typename FrameT>
+struct source_frame {
+  explicit source_frame(FrameT from_frame);
+  FrameT value;
+};
+
+// Stores the 'to' and 'from' frames of the transform
 template <typename FrameT>
 struct frame_pair {
   using frame_type = FrameT;
-
+  frame_pair(target_frame<FrameT> trg_frame, source_frame<FrameT> src_frame);
   FrameT to_frame;
   FrameT from_frame;
 };
+
+template <typename FrameT>
+target_frame<FrameT> to(FrameT to_frame);
+
+template <typename FrameT>
+source_frame<FrameT> from(FrameT from_frame);
+
+// For ergonomics in C++11 before operator""s
+target_frame<std::string> to_s(std::string to_frame);
+source_frame<std::string> from_s(std::string from_frame);
+
+// Allows for decuction of the frame type
+template <typename FrameT>
+frame_pair<FrameT> make_frame_pair(target_frame<FrameT> trg_frame, source_frame<FrameT> src_frame);
+
+// A terse way to write make_frame_pair
+template <typename FrameT>
+frame_pair<FrameT> operator<<(target_frame<FrameT> trg_frame, source_frame<FrameT> src_frame);
 
 template <typename FrameT>
 std::string to_string(const tfrm<FrameT>& tf);
@@ -65,15 +100,14 @@ class tfrm {
  public:
   using frame_type = FrameT;
 
-  tfrm(const FrameT& to_frame, const FrameT& from_frame, const quat& rot, const vec3& trans);
+  tfrm(frame_pair<FrameT> fp, quat rot, vec3 trans);
   tfrm(const tfrm& other_tf);
   tfrm(tfrm&& other_tf);
 
-  static tfrm identity(const FrameT& to_frame, const FrameT& from_frame);
-  static tfrm from_rotation(const FrameT& to_frame, const FrameT& from_frame, const quat& rot);
-  static tfrm from_translation(const FrameT& to_frame, const FrameT& from_frame, const vec3& trans);
-  static tfrm from_isometry(const FrameT& to_frame, const FrameT& from_frame,
-                            const Eigen::Isometry3d& isometry);
+  static tfrm identity(frame_pair<FrameT> fp);
+  static tfrm from_rotation(frame_pair<FrameT> fp, quat rot);
+  static tfrm from_translation(frame_pair<FrameT> fp, vec3 trans);
+  static tfrm from_isometry(frame_pair<FrameT> fp, const Eigen::Isometry3d& isometry);
 
   tfrm& operator=(const tfrm& other_tf);
   tfrm& operator=(tfrm&& other_tf);
@@ -99,7 +133,7 @@ class tfrm {
   vec3 operator*(const vec3& trans) const;
   vec3 operator()(const vec3& trans) const;
 
-  tfrm interpolate(const FrameT& interp_to_frame, const tfrm& other_tf, double t) const;
+  tfrm interpolate(target_frame<FrameT> interp_to_frame, const tfrm& other_tf, double t) const;
 
   Eigen::Isometry3d as_isometry() const;
 
@@ -128,10 +162,141 @@ class interpolate_exception : public std::runtime_error {
   interpolate_exception(interpolate_exception&& other_comp_excp) = default;
 };
 
+}  // namespace ttfrm
+
+////////////////////////// IMPLS //////////////////////////
+
+namespace ttfrm {
+namespace detail {
+
+namespace stringshim {
+
+template <int N>
+std::string to_string(const char (&cstr)[N])
+{
+  // Because this is used with string constants, we know N will always be 1 or
+  // greater, due to the final null byte terminator.
+  return std::string(cstr, N - 1);
+}
+
+// WARNING Only ever use this from the string concat function to avoid
+// unneccesary string copies. Can result dangling references otherwise.
+const std::string& to_string(const std::string& str)
+{
+  return str;
+}
+
+}  // namespace stringshim
+
+template <typename... String>
+std::string string_concat_strs(const String&... str)
+{
+  size_t total_len = 0;
+  (void) std::initializer_list<int>{(total_len += str.length(), 0)...};
+  std::string concat_str(total_len, ' ');
+  auto concat_iter = concat_str.begin();
+  (void) std::initializer_list<int>{
+      (concat_iter = std::copy(str.begin(), str.end(), concat_iter), 0)...};
+  return concat_str;
+}
+
+template <typename... T>
+std::string string_concat(const T&... val)
+{
+  using std::to_string;
+  using stringshim::to_string;
+  return string_concat_strs(to_string(val)...);
+}
+
+}  // namespace detail
+}  // namespace ttfrm
+
+namespace ttfrm {
+
 template <typename FrameT>
-tfrm<FrameT>::tfrm(const FrameT& to_frame, const FrameT& from_frame, const quat& rot,
-                   const vec3& trans)
-    : to_frame_(to_frame), from_frame_(from_frame), rot_(rot.normalized()), trans_(trans)
+target_frame<FrameT>::target_frame(FrameT to_frame) : value(std::move(to_frame))
+{
+  // Do nothing
+}
+
+template <typename FrameT>
+source_frame<FrameT>::source_frame(FrameT from_frame) : value(std::move(from_frame))
+{
+  // Do nothing
+}
+
+template <typename FrameT>
+target_frame<FrameT> to(FrameT to_frame)
+{
+  return target_frame<FrameT>(std::move(to_frame));
+}
+
+template <typename FrameT>
+source_frame<FrameT> from(FrameT from_frame)
+{
+  return source_frame<FrameT>(std::move(from_frame));
+}
+
+// For ergonomics in C++11 before operator""s
+inline target_frame<std::string> to_s(std::string to_frame)
+{
+  return to<std::string>(std::move(to_frame));
+}
+
+inline source_frame<std::string> from_s(std::string from_frame)
+{
+  return from<std::string>(std::move(from_frame));
+}
+
+template <typename FrameT>
+frame_pair<FrameT>::frame_pair(target_frame<FrameT> trg_frame, source_frame<FrameT> src_frame)
+    : to_frame(std::move(trg_frame.value)), from_frame(std::move(src_frame.value))
+{
+  // Do nothing
+}
+
+template <typename FrameT>
+frame_pair<FrameT> make_frame_pair(target_frame<FrameT> trg_frame, source_frame<FrameT> src_frame)
+{
+  return frame_pair<FrameT>(std::move(trg_frame), std::move(src_frame));
+}
+
+template <typename FrameT>
+frame_pair<FrameT> operator<<(target_frame<FrameT> trg_frame, source_frame<FrameT> src_frame)
+{
+  return make_frame_pair(std::move(trg_frame), std::move(src_frame));
+}
+
+template <typename FrameT>
+std::string to_string(const tfrm<FrameT>& tf)
+{
+  return detail::string_concat(
+      "([", tf.to_frame_, "] <- [", tf.from_frame_, "], ROT: (W: ", tf.rot_.w(),
+      ", X: ", tf.rot_.x(), ", Y: ", tf.rot_.y(), ", Z: ", tf.rot_.z(),
+      "), TRANS: (X: ", tf.trans_.x(), ", Y: ", tf.trans_.y(), ", Z: ", tf.trans_.z(), "))");
+}
+
+template <typename FrameT>
+std::string to_string(const frame_pair<FrameT>& fp)
+{
+  return detail::string_concat("([", fp.to_frame, "] <- [", fp.from_frame, "])");
+}
+
+// template <typename FrameT>
+// tfrm<FrameT>::tfrm(const FrameT& to_frame, const FrameT& from_frame, const quat& rot,
+//                    const vec3& trans)
+//     : to_frame_(to_frame), from_frame_(from_frame), rot_(rot.normalized()), trans_(trans)
+// {
+//   // Do nothing
+// }
+
+// TODO Potentially remove calls to normalized?
+template <typename FrameT>
+tfrm<FrameT>::tfrm(frame_pair<FrameT> fp, quat rot, vec3 trans)
+    : to_frame_(std::move(fp.to_frame)),
+      from_frame_(std::move(fp.from_frame)),
+      rot_(rot.normalized()),
+      trans_(std::move(trans))
 {
   // Do nothing
 }
@@ -157,30 +322,27 @@ tfrm<FrameT>::tfrm(tfrm&& other_tf)
 }
 
 template <typename FrameT>
-tfrm<FrameT> tfrm<FrameT>::identity(const FrameT& to_frame, const FrameT& from_frame)
+tfrm<FrameT> tfrm<FrameT>::identity(frame_pair<FrameT> fp)
 {
-  return tfrm(to_frame, from_frame, quat::Identity(), vec3::Zero());
+  return tfrm(std::move(fp), quat::Identity(), vec3::Zero());
 }
 
 template <typename FrameT>
-tfrm<FrameT> tfrm<FrameT>::from_rotation(const FrameT& to_frame, const FrameT& from_frame,
-                                         const quat& rot)
+tfrm<FrameT> tfrm<FrameT>::from_rotation(frame_pair<FrameT> fp, quat rot)
 {
-  return tfrm(to_frame, from_frame, rot, vec3::Zero());
+  return tfrm(std::move(fp), std::move(rot), vec3::Zero());
 }
 
 template <typename FrameT>
-tfrm<FrameT> tfrm<FrameT>::from_translation(const FrameT& to_frame, const FrameT& from_frame,
-                                            const vec3& trans)
+tfrm<FrameT> tfrm<FrameT>::from_translation(frame_pair<FrameT> fp, vec3 trans)
 {
-  return tfrm(to_frame, from_frame, quat::Identity(), trans);
+  return tfrm(std::move(fp), quat::Identity(), std::move(trans));
 }
 
 template <typename FrameT>
-tfrm<FrameT> tfrm<FrameT>::from_isometry(const FrameT& to_frame, const FrameT& from_frame,
-                                         const Eigen::Isometry3d& isometry)
+tfrm<FrameT> tfrm<FrameT>::from_isometry(frame_pair<FrameT> fp, const Eigen::Isometry3d& isometry)
 {
-  return tfrm(to_frame, from_frame, quat(isometry.rotation()), isometry.translation());
+  return tfrm(std::move(fp), quat(isometry.rotation()), isometry.translation());
 }
 
 template <typename FrameT>
@@ -230,7 +392,7 @@ bool tfrm<FrameT>::is_approx(const tfrm& other_tf, double precision) const
 template <typename FrameT>
 frame_pair<FrameT> tfrm<FrameT>::frames() const
 {
-  return {to_frame_, from_frame_};
+  return {to(to_frame_), from(from_frame_)};
 }
 
 template <typename FrameT>
@@ -261,7 +423,7 @@ template <typename FrameT>
 tfrm<FrameT> tfrm<FrameT>::inverse() const
 {
   const quat inv_rot = rot_.conjugate();
-  return tfrm(from_frame_, to_frame_, inv_rot, inv_rot * -trans_);
+  return tfrm(frame_pair<FrameT>(to(from_frame_), from(to_frame_)), inv_rot, inv_rot * -trans_);
 }
 
 template <typename FrameT>
@@ -271,7 +433,7 @@ tfrm<FrameT> tfrm<FrameT>::compose(const tfrm& other_tf) const
     throw compose_exception(*this, other_tf);
   }
   // T2(T1(v)) = R2 * (R1 * v + t1) + t2 = (R2 * R1) * v + (t2 + R2 * t1)
-  return tfrm(to_frame_, other_tf.from_frame_, rot_ * other_tf.rot_,
+  return tfrm(frame_pair<FrameT>(to(to_frame_), from(other_tf.from_frame_)), rot_ * other_tf.rot_,
               trans_ + rot_ * other_tf.trans_);
 }
 
@@ -307,14 +469,14 @@ vec3 tfrm<FrameT>::operator()(const vec3& trans) const
 }
 
 template <typename FrameT>
-tfrm<FrameT> tfrm<FrameT>::interpolate(const FrameT& interp_to_frame, const tfrm& other_tf,
+tfrm<FrameT> tfrm<FrameT>::interpolate(target_frame<FrameT> interp_frame, const tfrm& other_tf,
                                        double ratio) const
 {
   if (from_frame_ != other_tf.from_frame_) {
     throw interpolate_exception(*this, other_tf);
   }
-  return tfrm(interp_to_frame, from_frame_, rot_.slerp(ratio, other_tf.rot_),
-              trans_ + ratio * (other_tf.trans_ - trans_));
+  return tfrm(frame_pair<FrameT>(std::move(interp_frame), from(from_frame_)),
+              rot_.slerp(ratio, other_tf.rot_), trans_ + ratio * (other_tf.trans_ - trans_));
 }
 
 template <typename FrameT>
@@ -341,66 +503,6 @@ interpolate_exception::interpolate_exception(const tfrm<FrameT>& tf, const tfrm<
   // Do nothing
 }
 
-template <typename FrameT>
-std::string to_string(const tfrm<FrameT>& tf)
-{
-  return detail::string_concat(
-      "([", tf.to_frame_, "] <- [", tf.from_frame_, "], ROT: (W: ", tf.rot_.w(),
-      ", X: ", tf.rot_.x(), ", Y: ", tf.rot_.y(), ", Z: ", tf.rot_.z(),
-      "), TRANS: (X: ", tf.trans_.x(), ", Y: ", tf.trans_.y(), ", Z: ", tf.trans_.z(), "))");
-}
-
-template <typename FrameT>
-std::string to_string(const frame_pair<FrameT>& fp)
-{
-  return detail::string_concat("([", fp.to_frame, "] <- [", fp.from_frame, "])");
-}
-
-}  // namespace ttfrm
-
-namespace ttfrm {
-namespace detail {
-
-namespace stringshim {
-
-template <int N>
-std::string to_string(const char (&cstr)[N])
-{
-  // Because this is used with string constants, we know N will always be 1 or
-  // greater, due to the final null byte terminator.
-  return std::string(cstr, N - 1);
-}
-
-// WARNING Only ever use this from the string concat function to avoid
-// unneccesary string copies. Can result dangling references otherwise.
-const std::string& to_string(const std::string& str)
-{
-  return str;
-}
-
-}  // namespace stringshim
-
-template <typename... String>
-std::string string_concat_strs(const String&... str)
-{
-  size_t total_len = 0;
-  (void) std::initializer_list<int>{(total_len += str.length(), 0)...};
-  std::string concat_str(total_len, ' ');
-  auto concat_iter = concat_str.begin();
-  (void) std::initializer_list<int>{
-      (concat_iter = std::copy(str.begin(), str.end(), concat_iter), 0)...};
-  return concat_str;
-}
-
-template <typename... T>
-std::string string_concat(const T&... val)
-{
-  using std::to_string;
-  using stringshim::to_string;
-  return string_concat_strs(to_string(val)...);
-}
-
-}  // namespace detail
 }  // namespace ttfrm
 
 #endif  // TTFRM_TFRM_HPP

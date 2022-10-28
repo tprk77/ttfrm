@@ -18,13 +18,13 @@ const quat rot = {0.7071, 0.0, -0.7071, 0.0};
 const vec3 trans = {1.0, 1.0, 1.0};
 
 // Transform to X from World
-const tfrm<std::string> x_from_world("x", "world", rot, trans);
+const tfrm<std::string> x_from_world(to_s("x") << from("world"), rot, trans);
 
 // Transform to Y from X
-const tfrm<std::string> y_from_x("y", "x", rot, trans);
+const tfrm<std::string> y_from_x(to_s("y") << from_s("x"), rot, trans);
 
 // Transform to Z from Y
-const tfrm<std::string> z_from_y("z", "y", rot, trans);
+const tfrm<std::string> z_from_y(to_s("z") << from_s("y"), rot, trans);
 
 // Compose transforms to get the transform to Z form World (?)
 const tfrm<std::string> z_from_world = z_from_y * x_from_world;

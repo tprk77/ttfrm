@@ -197,14 +197,15 @@ struct tfrm_interpolate_bench : public bench_func {
   ttfrm::tfrm<int> other_tf;
 
   explicit tfrm_interpolate_bench(const ttfrm::tfrm<int>& tf)
-      : tf(tf), other_tf(0, 0, tf.rotation().inverse(), 2.0 * tf.translation())
+      : tf(tf),
+        other_tf(ttfrm::to(0) << ttfrm::from(0), tf.rotation().inverse(), 2.0 * tf.translation())
   {
     // Do nothing
   }
 
   void operator()() override
   {
-    tf = tf.interpolate(0, other_tf, 0.01);
+    tf = tf.interpolate(ttfrm::to(0), other_tf, 0.01);
   }
 
   std::size_t get_result_hash() const override
@@ -314,7 +315,7 @@ void cpu_usage_info()
   std::cout << "////////////////////\n\n";
   const ttfrm::quat rot = quat_from_euler_xyz(rad_from_deg({45.0, 90.0, 20.0}));
   const ttfrm::vec3 trans = {2.0, 1.0, 0.0};
-  const ttfrm::tfrm<int> tf(0, 0, rot, trans);
+  const ttfrm::tfrm<int> tf(ttfrm::to(0) << ttfrm::from(0), rot, trans);
   const Eigen::Isometry3d iso = tf.as_isometry();
   std::cout << "Running ttfrm::tfrm<int> benchmarks over 100M iterations... ";
   std::cout << std::flush;
