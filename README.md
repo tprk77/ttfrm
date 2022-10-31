@@ -36,7 +36,7 @@ The above code will crash with the following exception:
 
 ```text
 terminate called after throwing an instance of 'ttfrm::compose_exception'
-  what():  Cannot compose transforms ([z] <- [y]) and ([x] <- [world])
+  what():  Cannot compose transforms ([z] << [y]) and ([x] << [world])
 Aborted (core dumped)
 ```
 

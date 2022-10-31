@@ -265,7 +265,7 @@ TEST(tfrm, to_string_tfrm)
   const my_tfrm tf = my_tfrm::identity(to_s("test") << from_s("world"));
   const std::string tf_str = ttfrm::to_string(tf);
   const std::string expected_str =
-      "([test] <- [world], ROT: (W: 1.000000, X: 0.000000, Y: 0.000000, Z: 0.000000), TRANS: (X: "
+      "([test] << [world], ROT: (W: 1.000000, X: 0.000000, Y: 0.000000, Z: 0.000000), TRANS: (X: "
       "0.000000, Y: 0.000000, Z: 0.000000))";
   EXPECT_EQ(tf_str, expected_str);
 }
@@ -274,7 +274,7 @@ TEST(tfrm, to_string_frame_pair)
 {
   const my_frame_pair fp = ttfrm::to_s("test") << ttfrm::from_s("world");
   const std::string tf_str = ttfrm::to_string(fp);
-  const std::string expected_str = "([test] <- [world])";
+  const std::string expected_str = "([test] << [world])";
   EXPECT_EQ(tf_str, expected_str);
 }
 

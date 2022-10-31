@@ -271,7 +271,7 @@ template <typename FrameT>
 std::string to_string(const tfrm<FrameT>& tf)
 {
   return detail::string_concat(
-      "([", tf.to_frame_, "] <- [", tf.from_frame_, "], ROT: (W: ", tf.rot_.w(),
+      "([", tf.to_frame_, "] << [", tf.from_frame_, "], ROT: (W: ", tf.rot_.w(),
       ", X: ", tf.rot_.x(), ", Y: ", tf.rot_.y(), ", Z: ", tf.rot_.z(),
       "), TRANS: (X: ", tf.trans_.x(), ", Y: ", tf.trans_.y(), ", Z: ", tf.trans_.z(), "))");
 }
@@ -279,7 +279,7 @@ std::string to_string(const tfrm<FrameT>& tf)
 template <typename FrameT>
 std::string to_string(const frame_pair<FrameT>& fp)
 {
-  return detail::string_concat("([", fp.to_frame, "] <- [", fp.from_frame, "])");
+  return detail::string_concat("([", fp.to_frame, "] << [", fp.from_frame, "])");
 }
 
 // template <typename FrameT>
