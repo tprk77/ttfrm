@@ -14,6 +14,19 @@ jobs:
           name: Run the tests
           command: |
             make check
+  build_focal:
+    docker:
+      - image: tprk77/ttfrmci:focal
+    steps:
+      - checkout
+      - run:
+          name: Build tests and utilities
+          command: |
+            make CPP_STD=c++17 BUILD_GRAPHICS=false
+      - run:
+          name: Run the tests
+          command: |
+            make check
   build_bionic:
     docker:
       - image: tprk77/ttfrmci:bionic
@@ -51,20 +64,23 @@ jobs:
           command: |
             make coverage
       - run:
+          # NOTE Here we need to trick cpp-coveralls into doing the right thing
           name: Generate and upload coverage
           command: |
             echo -e "service_name: circle-ci\n" > .coveralls.yml \
             && TRAVIS_JOB_ID="#${CIRCLE_BUILD_NUM}" cpp-coveralls -r . -b build_cov -i ttfrm
-          # NOTE Here we need to trick cpp-coveralls into doing the right thing
 
 workflows:
   version: 2
   build_and_coverage:
     jobs:
       - build_jammy
+      - build_focal
       - build_bionic
       - build_xenial
       - coverage:
           requires:
+            - build_jammy
+            - build_focal
             - build_bionic
             - build_xenial
