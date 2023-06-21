@@ -277,8 +277,8 @@ struct iso_interpolate_bench : public bench_func {
 
   void operator()() override
   {
-    // So you can't really do spherical linear interpolation (slerp) with matrices! So this is not
-    // really a fair benchmark, but for illustrative purposes, if you really needed slerp, and all
+    // So you can't really do spherical linear interpolation (Slerp) with matrices! So this is not
+    // really a fair benchmark, but for illustrative purposes, if you really needed Slerp, and all
     // you had was matrices, this is how long it would take you to do the conversions and do it.
     const Eigen::Quaterniond iso_rot(iso.rotation());
     const Eigen::Quaterniond other_iso_rot(other_iso.rotation());
@@ -343,7 +343,7 @@ void cpu_usage_info()
   std::cout << "    Inverse: " << time_summary_to_str(iso_inverse_res) << "\n";
   std::cout << "    Interp:  " << time_summary_to_str(iso_interp_res) << " [*]\n";
   std::cout << "\n";
-  std::cout << "[*]: 10M iterations only. Includes required quaternion conversions for slerp.\n";
+  std::cout << "[*]: 10M iterations only. Includes required quaternion conversions for Slerp.\n";
   std::cout << "\n";
   std::cout << "Result hashes:\n";
   std::cout << "  ttfrm::tfrm<int> benchmarks:\n";
