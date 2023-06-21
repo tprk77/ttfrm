@@ -5,9 +5,9 @@
 [![Code Size Shield][shield_code_size]][ref_floppy_disk]
 [![License Shield][shield_license]][file_license_md]
 
-3D Rigid Transforms in C++ with frame checking. Ttfrm is built on top of
-Eigen 3. It's implemented with quaternions instead of matrices, if you happen
-to care about those sort of things.
+3D Rigid Transforms in C++ with frame checking. Ttfrm is built on top of Eigen.
+It's implemented with quaternions instead of matrices, if you happen to care
+about those sort of things.
 
 Frame checking means that you can't accidentally mix up your transforms. Well
 you can, but Ttfrm will helpfully crash your program. At least I think it's
@@ -63,13 +63,13 @@ should automatically download the dependencies for you.
 
 ```text
 # This is optional, Meson can download dependencies
-$ sudo apt-get install libeigen3-dev libgtest-dev libsdl2-dev
+$ sudo apt-get install libeigen3-dev libfmt-dev libgtest-dev libsdl2-dev
 ```
 
 Once the dependencies are in place, we can run the build:
 
 ```text
-$ meson build
+$ meson setup build
 $ ninja -C build
 ```
 
@@ -78,7 +78,7 @@ $ ninja -C build
 Run the tests using the following commands:
 
 ```text
-$ meson build
+$ meson setup build
 $ ninja -C build
 $ ./build/tfrm_test
 $ ./build/tfrm_tree_test
@@ -89,7 +89,7 @@ $ ./build/tfrm_tree_test
 Run the benchmarks using the following commands:
 
 ```text
-$ meson build
+$ meson setup build
 $ ninja -C build
 $ ./build/tfrm_bench
 ```
@@ -104,19 +104,17 @@ write compositions like this:
 const auto z_from_world = z_from_x * x_from_y * y_from_world;
 ```
 
-Did you notice how the `x`'s matched up? How the `y`'s matched up? That's the
-benefit of naming transforms with the `x_from_y` convention. We can easily
-inspect the names of the transforms, and check that the transforms are composed
-correctly. This doesn't happen when you name transforms with the `y_to_x`
-convention, it's actually kind of a mess:
+I recommend the naming convention `target_from_source`, because it's easier to
+visually check that the transform chain is correct. When frames match up
+lexicographically, it indicates that they also match up in the transform chain,
+e.g., `_x * x_` and `_y * y_`.
+
+Compare this to the `source_to_target` naming convention:
 
 ```cpp
-// DON'T NAME TRANSFORMS THIS WAY, IT'S LAME!
+// Here's a not-so-good way to name your transforms!
 const auto world_to_z = x_to_z * y_to_x * world_to_y;
 ```
-
-See the difference? It's just a naming convention, but `x_from_y` is easier to
-read. (At least I think so.)
 
 ## Poses As Transforms ##
 
@@ -152,14 +150,34 @@ const auto pose_a_in_world = a_from_world.inverse();
 
 ## Why Quaternions? ##
 
-Quaternions have a couple things going for them. First, they use less space
-than a rotation matrix. So you save a little memory with each transform.
-Second, quaternions are faster for composing transforms. Third, quaternions are
-faster for interpolating. Don't believe me? Run the benchmark. Here's an
-example result:
+Quaternions take up less memory than rotation matrices:
+
+``` text
+///////////////////////
+// MEMORY USAGE INFO //
+///////////////////////
+
+Sizes of ttfrm types:
+  sizeof(ttfrm::quat) = 32
+  sizeof(ttfrm::vec3) = 24
+  sizeof(ttfrm::tfrm<int>) = 80
+  sizeof(ttfrm::tfrm<std::uint8_t>) = 80
+  sizeof(ttfrm::tfrm<std::sting>) = 128
+  sizeof(ttfrm::tfrm<(Empty Struct)>) = 80
+Sizes of Eigen types:
+  sizeof(Eigen::Matrix3d) = 72
+  sizeof(Eigen::Vector3d) = 24
+  sizeof(Eigen::Matrix4d) = 128
+  sizeof(Eigen::Isometry3d) = 128
+Memory usage summary:
+  ttfrm::tfrm<int> IS SMALLER THAN Eigen::Isometry3d
+    (You save 48 B per transform, 46.875 KiB for every 1000 transforms)
+  ttfrm::tfrm<std::string> IS THE SAME SIZE AS Eigen::Isometry3d
+```
+
+They are also faster to interpolate, which is nice for robotics:
 
 ```text
-...
 ////////////////////
 // CPU USAGE INFO //
 ////////////////////
@@ -169,25 +187,19 @@ Running Eigen::Isometry3d benchmarks over 100M iterations... Done!
 
 CPU usage summary:
   ttfrm::tfrm<int> benchmarks:
-    Apply:   Took 0.816 s (8 ns average)
-    Compose: Took 2.681 s (26 ns average)
-    Inverse: Took 3.271 s (32 ns average)
-    Interp:  Took 2.359 s (23 ns average)
+    Apply:   Took 1.677 s (16 ns average)
+    Compose: Took 2.081 s (20 ns average)
+    Inverse: Took 1.827 s (18 ns average)
+    Interp:  Took 1.651 s (16 ns average)
   Eigen::Isometry3d benchmarks:
-    Apply:   Took 0.503 s (5 ns average)
-    Compose: Took 3.433 s (34 ns average)
-    Inverse: Took 1.602 s (16 ns average)
-    Interp:  Took 4.692 s (469 ns average) [*]
-
-[*]: 10M iterations only. Includes required quaternion conversions for slerp.
-...
+    Apply:   Took 0.611 s (6 ns average)
+    Compose: Took 1.444 s (14 ns average)
+    Inverse: Took 1.594 s (15 ns average)
+    Interp:  Took 4.609 s (46 ns average)
 ```
 
-As you can see (and do try this at home!) composing transforms is faster with
-quaternions. Applying a transform to a vector is slightly slower, but applying
-a transform to another transform (such as a pose) is faster. So if your
-workload involves chaining a bunch of transforms, or transforming a bunch of
-poses, quaternions will give you better performance.
+You might also expect composition to be faster with quaternions, but I'm
+guessing Eigen's `Isometry3d` is so well optimized it's actually faster!
 
 ## Demo ##
 
@@ -196,7 +208,7 @@ composing several parameterized, circular transforms. You can run it using the
 following commands:
 
 ```text
-$ meson build
+$ meson setup build
 $ ninja -C build
 $ ./build/spirograph_demo
 ```
