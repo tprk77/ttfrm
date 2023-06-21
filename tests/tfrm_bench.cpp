@@ -40,7 +40,6 @@ void memory_usage_info()
   std::cout << "///////////////////////\n\n";
   std::cout << "Sizes of ttfrm types:\n";
   std::cout << "  sizeof(ttfrm::quat) = " << sizeof(ttfrm::quat) << "\n";
-  std::cout << "  sizeof(ttfrm::quat) = " << sizeof(ttfrm::quat) << "\n";
   std::cout << "  sizeof(ttfrm::vec3) = " << sizeof(ttfrm::vec3) << "\n";
   std::cout << "  sizeof(ttfrm::tfrm<int>) = " << sizeof(ttfrm::tfrm<int>) << "\n";
   std::cout << "  sizeof(ttfrm::tfrm<std::uint8_t>) = " << sizeof(ttfrm::tfrm<std::uint8_t>)
@@ -329,7 +328,7 @@ void cpu_usage_info()
   const auto iso_apply_res = benchmark(1000, 100000000, iso_apply_bench(iso));
   const auto iso_compose_res = benchmark(1000, 100000000, iso_compose_bench(iso));
   const auto iso_inverse_res = benchmark(1000, 100000000, iso_inverse_bench(iso));
-  const auto iso_interp_res = benchmark(1000, 10000000, iso_interpolate_bench(iso));
+  const auto iso_interp_res = benchmark(1000, 100000000, iso_interpolate_bench(iso));
   std::cout << "Done!\n\n";
   std::cout << "CPU usage summary:\n";
   std::cout << "  ttfrm::tfrm<int> benchmarks:\n";
@@ -341,9 +340,7 @@ void cpu_usage_info()
   std::cout << "    Apply:   " << time_summary_to_str(iso_apply_res) << "\n";
   std::cout << "    Compose: " << time_summary_to_str(iso_compose_res) << "\n";
   std::cout << "    Inverse: " << time_summary_to_str(iso_inverse_res) << "\n";
-  std::cout << "    Interp:  " << time_summary_to_str(iso_interp_res) << " [*]\n";
-  std::cout << "\n";
-  std::cout << "[*]: 10M iterations only. Includes required quaternion conversions for Slerp.\n";
+  std::cout << "    Interp:  " << time_summary_to_str(iso_interp_res) << "\n";
   std::cout << "\n";
   std::cout << "Result hashes:\n";
   std::cout << "  ttfrm::tfrm<int> benchmarks:\n";
