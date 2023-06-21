@@ -211,7 +211,7 @@ $ ./build/spirograph_demo
 [build_coveralls]: https://coveralls.io/github/tprk77/ttfrm
 [file_license_md]: https://github.com/tprk77/ttfrm/blob/master/LICENSE.md
 [ref_floppy_disk]: https://en.wikipedia.org/wiki/History_of_the_floppy_disk
-[shield_circleci]: https://img.shields.io/circleci/build/github/tprk77/ttfrm/master?token=9d161918287a4e250f49ae8df77fff90432ce358
+[shield_circleci]: https://img.shields.io/circleci/build/gh/tprk77/ttfrm/master
 [shield_code_size]: https://img.shields.io/github/languages/code-size/tprk77/ttfrm
 [shield_coveralls]: https://img.shields.io/coveralls/github/tprk77/ttfrm
 [shield_license]: https://img.shields.io/github/license/tprk77/ttfrm?color=informational
