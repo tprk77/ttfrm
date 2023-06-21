@@ -15,7 +15,8 @@ PointerAlignment: Left
 # Miscellaneous formatting
 AllowShortFunctionsOnASingleLine: Empty
 BreakBeforeBinaryOperators: NonAssignment
-IndentCaseLabels: false
-SpaceAfterCStyleCast: true
 IncludeBlocks: Preserve
+IndentCaseLabels: false
+PenaltyReturnTypeOnItsOwnLine: 20
+SpaceAfterCStyleCast: true
 ...

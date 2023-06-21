@@ -27,6 +27,14 @@
 #include <string>
 #include <tuple>
 
+#if __cplusplus >= 201703L
+#define TTFRM_HAS_OPTIONAL true
+#endif
+
+#if TTFRM_HAS_OPTIONAL
+#include <optional>
+#endif
+
 #include <Eigen/Geometry>
 
 ////////////////////////// DECLS //////////////////////////
@@ -129,11 +137,20 @@ class tfrm {
   tfrm operator*(const tfrm& other_tf) const;
   tfrm operator()(const tfrm& other_tf) const;
 
+#if TTFRM_HAS_OPTIONAL
+  std::optional<tfrm> compose_opt(const tfrm& other_tf) const;
+#endif
+
   vec3 apply(const vec3& trans) const;
   vec3 operator*(const vec3& trans) const;
   vec3 operator()(const vec3& trans) const;
 
-  tfrm interpolate(target_frame<FrameT> interp_to_frame, const tfrm& other_tf, double t) const;
+  tfrm interpolate(target_frame<FrameT> interp_frame, const tfrm& other_tf, double ratio) const;
+
+#if TTFRM_HAS_OPTIONAL
+  std::optional<tfrm>
+  interpolate_opt(target_frame<FrameT> interp_frame, const tfrm& other_tf, double ratio) const;
+#endif
 
   Eigen::Isometry3d as_isometry() const;
 
@@ -437,6 +454,19 @@ tfrm<FrameT> tfrm<FrameT>::compose(const tfrm& other_tf) const
               trans_ + rot_ * other_tf.trans_);
 }
 
+#if TTFRM_HAS_OPTIONAL
+template <typename FrameT>
+std::optional<tfrm<FrameT>> tfrm<FrameT>::compose_opt(const tfrm& other_tf) const
+{
+  if (from_frame_ != other_tf.to_frame_) {
+    return std::nullopt;
+  }
+  // T2(T1(v)) = R2 * (R1 * v + t1) + t2 = (R2 * R1) * v + (t2 + R2 * t1)
+  return tfrm(frame_pair<FrameT>(to(to_frame_), from(other_tf.from_frame_)), rot_ * other_tf.rot_,
+              trans_ + rot_ * other_tf.trans_);
+}
+#endif
+
 template <typename FrameT>
 tfrm<FrameT> tfrm<FrameT>::operator*(const tfrm& other_tf) const
 {
@@ -478,6 +508,19 @@ tfrm<FrameT> tfrm<FrameT>::interpolate(target_frame<FrameT> interp_frame, const 
   return tfrm(frame_pair<FrameT>(std::move(interp_frame), from(from_frame_)),
               rot_.slerp(ratio, other_tf.rot_), trans_ + ratio * (other_tf.trans_ - trans_));
 }
+
+#if TTFRM_HAS_OPTIONAL
+template <typename FrameT>
+std::optional<tfrm<FrameT>> tfrm<FrameT>::interpolate_opt(target_frame<FrameT> interp_frame,
+                                                          const tfrm& other_tf, double ratio) const
+{
+  if (from_frame_ != other_tf.from_frame_) {
+    return std::nullopt;
+  }
+  return tfrm(frame_pair<FrameT>(std::move(interp_frame), from(from_frame_)),
+              rot_.slerp(ratio, other_tf.rot_), trans_ + ratio * (other_tf.trans_ - trans_));
+}
+#endif
 
 template <typename FrameT>
 Eigen::Isometry3d tfrm<FrameT>::as_isometry() const

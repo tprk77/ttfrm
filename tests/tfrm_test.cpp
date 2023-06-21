@@ -236,6 +236,18 @@ TEST(tfrm, compose_call)
   EXPECT_EQ(test_from_world.from_frame(), "world");
 }
 
+#if TTFRM_HAS_OPTIONAL
+TEST(tfrm, compose_opt)
+{
+  const my_tfrm x_from_world = my_tfrm::identity(to_s("x") << from_s("world"));
+  const my_tfrm test_from_x = my_tfrm::identity(to_s("test") << from_s("x"));
+  const std::optional<my_tfrm> test_from_world_opt = test_from_x.compose_opt(x_from_world);
+  EXPECT_TRUE(test_from_world_opt.has_value());
+  EXPECT_EQ(test_from_world_opt.value().to_frame(), "test");
+  EXPECT_EQ(test_from_world_opt.value().from_frame(), "world");
+}
+#endif
+
 TEST(tfrm, interpolate)
 {
   const my_tfrm x_from_world = my_tfrm::identity(to_s("x") << from_s("world"));
@@ -252,6 +264,19 @@ TEST(tfrm, interpolate_bad)
   EXPECT_THROW(const my_tfrm garbage = x_from_world.interpolate(to_s("test"), y_from_world, 0.77),
                ttfrm::interpolate_exception);
 }
+
+#if TTFRM_HAS_OPTIONAL
+TEST(tfrm, interpolate_opt)
+{
+  const my_tfrm x_from_world = my_tfrm::identity(to_s("x") << from_s("world"));
+  const my_tfrm y_from_world = my_tfrm::identity(to_s("y") << from_s("world"));
+  const std::optional<my_tfrm> test_from_world_opt =
+      x_from_world.interpolate_opt(to_s("test"), y_from_world, 0.77);
+  EXPECT_TRUE(test_from_world_opt.has_value());
+  EXPECT_EQ(test_from_world_opt.value().to_frame(), "test");
+  EXPECT_EQ(test_from_world_opt.value().from_frame(), "world");
+}
+#endif
 
 TEST(tfrm, as_isometry)
 {
