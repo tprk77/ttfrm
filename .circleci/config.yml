@@ -1,6 +1,19 @@
 version: 2
 
 jobs:
+  build_jammy:
+    docker:
+      - image: tprk77/ttfrmci:jammy
+    steps:
+      - checkout
+      - run:
+          name: Build tests and utilities
+          command: |
+            make CPP_STD=c++17 BUILD_GRAPHICS=false
+      - run:
+          name: Run the tests
+          command: |
+            make check
   build_bionic:
     docker:
       - image: tprk77/ttfrmci:bionic
@@ -48,6 +61,7 @@ workflows:
   version: 2
   build_and_coverage:
     jobs:
+      - build_jammy
       - build_bionic
       - build_xenial
       - coverage:

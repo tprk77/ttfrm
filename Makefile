@@ -12,8 +12,10 @@ endif
 
 # Important build variables
 VERBOSE ?=
+CPP_STD ?=
 BUILD_GRAPHICS ?=
-MESON_FLAGS ?= $(if $(BUILD_GRAPHICS),-Dgraphics=$(BUILD_GRAPHICS))
+MESON_FLAGS ?= $(if $(BUILD_GRAPHICS),-Dgraphics=$(BUILD_GRAPHICS)) \
+        $(if $(CPP_STD),-Dcpp_std=$(CPP_STD))
 NINJA_FLAGS ?= $(if $(VERBOSE),-v)
 
 # Automatically collect all sources
@@ -22,8 +24,9 @@ TTFRM_SRCS := $(shell find $(TTFRM_SRC_DIRS) -type f -regex ".*\.[ch]pp$$")
 
 all: build/build.sentinel
 
+# Create the build directory (don't actually build)
 build:
-> meson $(MESON_FLAGS) build
+> meson setup $(MESON_FLAGS) build
 
 build/build.sentinel: $(TTFRM_SRCS) | build
 > ninja $(NINJA_FLAGS) -C build
